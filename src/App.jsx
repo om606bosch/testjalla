@@ -495,14 +495,15 @@ function Modal({ title, onClose, children, wide }) {
   return (
     <div style={{
       position:"fixed", inset:0, background:"var(--backdrop)", zIndex:1000,
-      display:"flex", alignItems:"center", justifyContent:"center", padding:20
+      display:"flex", alignItems:"flex-start", justifyContent:"center",
+      padding:"20px 20px", overflowY:"auto"
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
         background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12,
-        width:"100%", maxWidth:wide?820:640, maxHeight:"91vh", overflowY:"auto",
-        boxShadow:"var(--shadow-lg)"
+        width:"100%", maxWidth:wide?820:640,
+        boxShadow:"var(--shadow-lg)", margin:"auto", flexShrink:0
       }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 26px", borderBottom:"1px solid var(--border)" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 26px", borderBottom:"1px solid var(--border)", position:"sticky", top:0, background:"var(--surface)", zIndex:10, borderRadius:"12px 12px 0 0" }}>
           <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:"var(--text-primary)", fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.04em" }}>{title}</h2>
           <button onClick={onClose} style={{ background:"none", border:"none", color:"var(--text-muted)", cursor:"pointer", fontSize:22, lineHeight:1 }}>×</button>
         </div>
@@ -512,12 +513,12 @@ function Modal({ title, onClose, children, wide }) {
   );
 }
 
-function Field({ label, children, hint }) {
+function Field({ label, children, hint, error }) {
   return (
     <div style={{ marginBottom:16 }}>
-      <label style={{ display:"block", fontSize:11, fontWeight:600, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{label}</label>
+      <label style={{ display:"block", fontSize:11, fontWeight:600, color:error?"#f87171":"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{label}{error&&<span style={{fontWeight:400,textTransform:"none",marginLeft:6}}>— {error}</span>}</label>
       {children}
-      {hint && <div style={{ fontSize:11, color:"var(--text-faint)", marginTop:4 }}>{hint}</div>}
+      {hint && !error && <div style={{ fontSize:11, color:"var(--text-faint)", marginTop:4 }}>{hint}</div>}
     </div>
   );
 }
@@ -545,7 +546,7 @@ function Divider({ label }) {
 // Shows an "Other / free text" escape so users can still type a custom value
 // if their region isn't in the list yet. Admins can permanently add new
 // regions via the User Database → Region Settings panel.
-function RegionSelect({ value, onChange, regions, placeholder = "— Select district —", style }) {
+function RegionSelect({ value, onChange, regions, placeholder = "— Select district —", style, hasError }) {
   const knownRegion = !value || regions.includes(value);
   const [showCustom, setShowCustom] = useState(!knownRegion && !!value);
 
@@ -563,7 +564,7 @@ function RegionSelect({ value, onChange, regions, placeholder = "— Select dist
     return (
       <div style={{ display:"flex", gap:8 }}>
         <input
-          style={{ ...inp, ...(style||{}), flex:1 }}
+          style={{ ...inp, ...(style||{}), flex:1, ...(hasError ? {border:"1.5px solid #f87171",background:"#f8717108"} : {}) }}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder="Type district name…"
@@ -579,7 +580,7 @@ function RegionSelect({ value, onChange, regions, placeholder = "— Select dist
 
   return (
     <select
-      style={{ ...inp, ...(style||{}) }}
+      style={{ ...inp, ...(style||{}), ...(hasError ? {border:"1.5px solid #f87171",background:"#f8717108"} : {}) }}
       value={regions.includes(value) ? value : ""}
       onChange={handleSelect}
     >
@@ -595,6 +596,8 @@ const inp  = { width:"100%", boxSizing:"border-box", background:"var(--inp-bg)",
 const btnS = { background:"var(--surface2)", border:"1px solid var(--border2)", borderRadius:6, color:"var(--text-second)", padding:"10px 20px", fontSize:14, fontWeight:600, cursor:"pointer" };
 const btnP = { background:"#e85d2c", border:"none", borderRadius:6, color:"#fff", padding:"10px 20px", fontSize:14, fontWeight:700, cursor:"pointer", letterSpacing:"0.04em" };
 const btnD = { background:"var(--surface2)", border:"1px solid #f8717144", borderRadius:6, color:"#f87171", padding:"10px 20px", fontSize:14, fontWeight:600, cursor:"pointer" };
+// Returns style for an input field — red border when invalid
+function errInp(err) { return err ? { ...inp, border:"1.5px solid #f87171", background:"#f8717108" } : inp; }
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -608,7 +611,7 @@ const btnD = { background:"var(--surface2)", border:"1px solid #f8717144", borde
 //   style      — optional extra style for the wrapper
 // ─────────────────────────────────────────────────────────────────────────────
 
-function UserPicker({ users, value, onChange, placeholder = "— Select user —", labelFn, style }) {
+function UserPicker({ users, value, onChange, placeholder = "— Select user —", labelFn, style, hasError }) {
   const defaultLabel = u => u.certification && u.certification !== "None"
     ? `${u.name} (${u.certification})`
     : u.name;
@@ -616,50 +619,74 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
 
   const selected = users.find(u => u.id === value) || null;
 
-  const [open,   setOpen]   = useState(false);
-  const [query,  setQuery]  = useState("");
-  const inputRef = React.useRef(null);
-  const wrapRef  = React.useRef(null);
+  const [open,    setOpen]    = useState(false);
+  const [query,   setQuery]   = useState("");
+  const [dropPos, setDropPos] = useState({ top:0, left:0, width:0 });
+  const inputRef  = React.useRef(null);
+  const triggerRef = React.useRef(null);
+  const wrapRef   = React.useRef(null);
 
-  // Close on outside click
+  // Position the fixed dropdown relative to the trigger button
+  function calcPos() {
+    if (!triggerRef.current) return;
+    const r = triggerRef.current.getBoundingClientRect();
+    // Decide whether to open upward if too close to bottom
+    const spaceBelow = window.innerHeight - r.bottom;
+    const dropH = Math.min(300, users.length * 38 + 60);
+    const openUp = spaceBelow < dropH && r.top > dropH;
+    setDropPos({
+      top: openUp ? r.top - dropH - 4 : r.bottom + 4,
+      left: r.left,
+      width: r.width,
+      openUp
+    });
+  }
+
+  // Close on outside click or scroll
   React.useEffect(() => {
     function handler(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target) &&
+          !document.getElementById("userpicker-portal")?.contains(e.target)) {
         setOpen(false); setQuery("");
       }
     }
+    function onScroll() { if (open) { calcPos(); } }
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+    document.addEventListener("scroll", onScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("scroll", onScroll, true);
+    };
+  }, [open]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return q ? users.filter(u => label(u).toLowerCase().includes(q)) : users;
   }, [users, query]);
 
-  function select(id) {
-    onChange(id);
-    setOpen(false);
-    setQuery("");
-  }
+  function select(id) { onChange(id); setOpen(false); setQuery(""); }
 
   function handleTriggerClick() {
+    calcPos();
     setOpen(o => !o);
     setQuery("");
-    // focus the search input on next tick
     setTimeout(() => inputRef.current?.focus(), 30);
   }
+
+  const theme = useTheme();
 
   return (
     <div ref={wrapRef} style={{ position:"relative", width:"100%", ...(style||{}) }}>
       {/* Trigger button */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={handleTriggerClick}
         style={{
           ...inp, textAlign:"left", cursor:"pointer", display:"flex",
           alignItems:"center", justifyContent:"space-between", gap:8,
-          paddingRight:10, userSelect:"none"
+          paddingRight:10, userSelect:"none",
+          ...(hasError ? {border:"1.5px solid #f87171",background:"#f8717108"} : {})
         }}
       >
         <span style={{ color: selected ? "var(--text-primary)" : "var(--text-faint)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
@@ -668,13 +695,25 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
         <span style={{ color:"var(--text-faint)", fontSize:11, flexShrink:0 }}>{open ? "▲" : "▼"}</span>
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — rendered via a portal-like fixed div to escape any overflow:hidden/auto parent */}
       {open && (
-        <div style={{
-          position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:500,
-          background:"var(--surface)", border:"1px solid var(--border2)", borderRadius:8,
-          boxShadow:"0 12px 40px rgba(0,0,0,0.7)", overflow:"hidden"
-        }}>
+        <div
+          id="userpicker-portal"
+          style={{
+            position:"fixed",
+            top: dropPos.top,
+            left: dropPos.left,
+            width: dropPos.width,
+            zIndex: 9999,
+            background:"var(--surface)",
+            border:"1px solid var(--border2)",
+            borderRadius:8,
+            boxShadow: theme === "dark"
+              ? "0 12px 40px rgba(0,0,0,0.75)"
+              : "0 8px 32px rgba(0,0,0,0.18)",
+            overflow:"hidden"
+          }}
+        >
           {/* Search input */}
           <div style={{ padding:"8px 10px", borderBottom:"1px solid var(--border)" }}>
             <input
@@ -688,7 +727,6 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
           </div>
           {/* Option list */}
           <div style={{ maxHeight:220, overflowY:"auto" }}>
-            {/* Clear / blank option */}
             <div
               onClick={() => select("")}
               style={{
@@ -712,7 +750,7 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
                   borderBottom:"1px solid var(--surface3)",
                   transition:"background 0.1s"
                 }}
-                onMouseEnter={e => { if (u.id !== value) e.currentTarget.style.background = "#141a24"; }}
+                onMouseEnter={e => { if (u.id !== value) e.currentTarget.style.background = "var(--surface3)"; }}
                 onMouseLeave={e => { if (u.id !== value) e.currentTarget.style.background = "transparent"; }}
               >
                 {label(u)}
@@ -733,8 +771,9 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
   const [mode, setMode]   = useState("login");
   const [form, setForm]   = useState({ name:"", email:"", password:"", confirm:"", region:"" });
   const [error, setError] = useState("");
+  const [fe, setFe]       = useState({});   // field errors for register form
 
-  const f = k => e => { setForm(p => ({...p,[k]:e.target.value})); setError(""); };
+  const f = k => e => { setForm(p => ({...p,[k]:e.target.value})); setError(""); setFe(p=>({...p,[k]:false})); };
 
   function login() {
     const user = users.find(u => u.email.toLowerCase() === form.email.toLowerCase() && u.password === form.password);
@@ -744,10 +783,14 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
   }
 
   function register() {
-    if (!form.name.trim() || !form.email.trim() || !form.password) { setError("Name, email and password are required."); return; }
-    if (form.password !== form.confirm)  { setError("Passwords do not match."); return; }
-    if (form.password.length < 4)        { setError("Password must be at least 4 characters."); return; }
-    if (users.find(u => u.email.toLowerCase() === form.email.toLowerCase())) { setError("Email already registered."); return; }
+    const errs = {};
+    if (!form.name.trim())    errs.name     = true;
+    if (!form.email.trim())   errs.email    = true;
+    if (!form.password)       errs.password = true;
+    if (Object.keys(errs).length) { setFe(errs); setError(""); return; }
+    if (form.password !== form.confirm)  { setFe({confirm:true}); setError("Passwords do not match."); return; }
+    if (form.password.length < 4)        { setFe({password:true}); setError("Password must be at least 4 characters."); return; }
+    if (users.find(u => u.email.toLowerCase() === form.email.toLowerCase())) { setFe({email:true}); setError("Email already registered."); return; }
     const nu = {
       id:uid(), name:form.name.trim(), email:form.email.trim(), password:form.password,
       role:"member", certification:"None", region:form.region.trim(),
@@ -776,7 +819,7 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
           {/* Tab */}
           <div style={{ display:"flex", background:"var(--surface2)", borderRadius:9, padding:4, marginBottom:28 }}>
             {["login","register"].map(m => (
-              <button key={m} onClick={() => { setMode(m); setError(""); }} style={{
+              <button key={m} onClick={() => { setMode(m); setError(""); setFe({}); }} style={{
                 flex:1, padding:"9px", border:"none", borderRadius:6, cursor:"pointer", fontSize:14, fontWeight:600,
                 background:mode===m?"#e85d2c":"transparent", color:mode===m?"#fff":"var(--text-muted)", transition:"all 0.15s"
               }}>{m==="login"?"Sign In":"Register"}</button>
@@ -807,14 +850,14 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
             </>
           ) : (
             <>
-              <Field label="Full Name"><input style={inp} value={form.name} onChange={f("name")} placeholder="Your full name" /></Field>
-              <Field label="Email"><input style={inp} type="email" value={form.email} onChange={f("email")} placeholder="your@email.com" /></Field>
+              <Field label="Full Name" error={fe.name?"Required":undefined}><input style={errInp(fe.name)} value={form.name} onChange={f("name")} placeholder="Your full name" /></Field>
+              <Field label="Email" error={fe.email?"Required":undefined}><input style={errInp(fe.email)} type="email" value={form.email} onChange={f("email")} placeholder="your@email.com" /></Field>
               <Field label="District (optional)">
                 <RegionSelect value={form.region} onChange={v=>setForm(p=>({...p,region:v}))} regions={regions} placeholder="— Select your district —" />
               </Field>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                <Field label="Password"><input style={inp} type="password" value={form.password} onChange={f("password")} placeholder="Min. 4 chars" /></Field>
-                <Field label="Confirm"><input style={inp} type="password" value={form.confirm} onChange={f("confirm")} placeholder="Repeat" onKeyDown={e=>e.key==="Enter"&&register()} /></Field>
+                <Field label="Password" error={fe.password?"Required":undefined}><input style={errInp(fe.password)} type="password" value={form.password} onChange={f("password")} placeholder="Min. 4 chars" /></Field>
+                <Field label="Confirm" error={fe.confirm?"Mismatch":undefined}><input style={errInp(fe.confirm)} type="password" value={form.confirm} onChange={f("confirm")} placeholder="Repeat" onKeyDown={e=>e.key==="Enter"&&register()} /></Field>
               </div>
               <div style={{ background:"var(--surface2)", border:"1px solid var(--border)", borderRadius:7, padding:"11px 14px", fontSize:12, color:"var(--text-faint)", marginBottom:16 }}>
                 New accounts start as <Badge label="member" color="#60a5fa" /> with <Badge label="No Cert" color="var(--text-faint)" />. An admin must grant your RO certification before you can be assigned to matches.
@@ -914,6 +957,7 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
 
   const [editMode,  setEditMode]  = useState(false);
   const [form,      setForm]      = useState({ name:user.name, region:user.region, notes:user.notes, email:user.email, iroa: user.iroa || { member:false, since:null } });
+  const [profileFe, setProfileFe] = useState({});
   const [pwForm,    setPwForm]    = useState({ current:"", next:"", confirm:"" });
   const [pwError,   setPwError]   = useState("");
   const [pwSuccess, setPwSuccess] = useState(false);
@@ -937,7 +981,8 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
   const pendingTypes = new Set(myApplications.filter(a=>a.status==="pending").map(a=>a.type));
 
   function saveProfile() {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) { setProfileFe({name:true}); return; }
+    setProfileFe({});
     const upd = {...user,name:form.name.trim(),region:form.region.trim(),notes:form.notes,email:form.email.trim(),iroa:form.iroa};
     setUsers(prev=>prev.map(u=>u.id===user.id?upd:u));
     setCurrentUser(upd); setEditMode(false);
@@ -1005,7 +1050,7 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
               </>
             ) : (
               <>
-                <Field label="Full Name"><input style={inp} value={form.name}   onChange={e=>setForm(f=>({...f,name:e.target.value}))} /></Field>
+                <Field label="Full Name"><input style={errInp(profileFe.name)} value={form.name}   onChange={e=>{setForm(f=>({...f,name:e.target.value}));setProfileFe(p=>({...p,name:false}));}} /></Field>
                 <Field label="Email">    <input style={inp} type="email" value={form.email}  onChange={e=>setForm(f=>({...f,email:e.target.value}))} /></Field>
                 <Field label="District">
                   <RegionSelect value={form.region} onChange={v=>setForm(f=>({...f,region:v}))} regions={regions} />
@@ -1302,6 +1347,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
   // Region management state
   const [newRegionName, setNewRegionName] = useState("");
   const [regionError,   setRegionError]   = useState("");
+  const [regionFieldErr,setRegionFieldErr]= useState(false);
 
   const filtered = useMemo(() => users.filter(u=>{
     const q=search.toLowerCase();
@@ -1367,8 +1413,9 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
   // Region management
   function addRegion() {
     const name = newRegionName.trim();
-    if (!name) { setRegionError("Region name cannot be empty."); return; }
-    if (regions.includes(name)) { setRegionError(`"${name}" already exists.`); return; }
+    if (!name) { setRegionError("Region name cannot be empty."); setRegionFieldErr(true); return; }
+    setRegionFieldErr(false);
+    if (regions.includes(name)) { setRegionError(`"${name}" already exists.`); setRegionFieldErr(true); return; }
     setRegions(prev => [...prev, name].sort());
     setNewRegionName(""); setRegionError("");
   }
@@ -1493,9 +1540,9 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
             <div style={{display:"flex",gap:10,marginBottom:20,alignItems:"flex-end"}}>
               <Field label="New District Name" hint="e.g. 'Midtøst' or 'Capital District'">
                 <input
-                  style={{...inp,width:260}}
+                  style={{...errInp(regionFieldErr),width:260}}
                   value={newRegionName}
-                  onChange={e=>{ setNewRegionName(e.target.value); setRegionError(""); }}
+                  onChange={e=>{ setNewRegionName(e.target.value); setRegionError(""); setRegionFieldErr(false); }}
                   placeholder="District name…"
                   onKeyDown={e=>e.key==="Enter"&&addRegion()}
                 />
@@ -1986,7 +2033,8 @@ function MatchesPage({ users, matches, setMatches, regions }) {
   const [search,       setSearch]       = useState("");
 
   const blank = { name:"", date:new Date().toISOString().slice(0,10), region:"", level:"Level I", discipline:"Handgun", stages:6, shooters:"", externalLink:"", status:"upcoming", combinedMDRM:false, md:"", mdText:"", rm:"", assignments:[] };
-  const [form, setForm] = useState(blank);
+  const [form,        setForm]       = useState(blank);
+  const [formErrors,  setFormErrors] = useState({});
 
   const filtered = useMemo(()=>matches.filter(m=>{
     const q=search.toLowerCase();
@@ -1996,9 +2044,20 @@ function MatchesPage({ users, matches, setMatches, regions }) {
   }),[matches,search,statusFilter,regionFilter]);
 
   function createMatch() {
-    if (!form.name.trim()) return;
+    const errs = {};
+    if (!form.name.trim())                                  errs.name   = true;
+    if (!form.region)                                       errs.region = true;
+    // RM required; MD required unless external mdText provided
+    if (form.combinedMDRM) {
+      if (!form.md)                                         errs.mdRm   = true;
+    } else {
+      if (!form.rm)                                         errs.rm     = true;
+      if (!form.md && !form.mdText.trim())                  errs.md     = true;
+    }
+    if (Object.keys(errs).length) { setFormErrors(errs); return; }
+    setFormErrors({});
     setMatches(prev=>[...prev,{...form,id:uid()}]);
-    setShowCreate(false); setForm(blank);
+    setShowCreate(false); setForm(blank); setFormErrors({});
   }
   function deleteMatch(id) {
     if (window.confirm("Delete this match?")) setMatches(prev=>prev.filter(m=>m.id!==id));
@@ -2018,7 +2077,7 @@ function MatchesPage({ users, matches, setMatches, regions }) {
           <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Matches</h1>
           <p style={{color:"var(--text-faint)",margin:0,fontSize:14}}>{filtered.length} of {matches.length} shown</p>
         </div>
-        {canEdit&&<button style={btnP} onClick={()=>{setForm(blank);setShowCreate(true);}}>+ Create Match</button>}
+        {canEdit&&<button style={btnP} onClick={()=>{setForm(blank);setFormErrors({});setShowCreate(true);}}>+ Create Match</button>}
       </div>
       <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search matches…" style={{...inp,flex:1}} />
@@ -2069,11 +2128,11 @@ function MatchesPage({ users, matches, setMatches, regions }) {
       </div>
 
       {showCreate&&canEdit&&(
-        <Modal title="Create Match" onClose={()=>setShowCreate(false)}>
-          <Field label="Match Name"><input style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Oslo Club Match #13" /></Field>
+        <Modal title="Create Match" onClose={()=>{setShowCreate(false);setFormErrors({});}}>
+          <Field label="Match Name" error={formErrors.name?"Required":undefined}><input style={errInp(formErrors.name)} value={form.name} onChange={e=>{setForm(f=>({...f,name:e.target.value}));setFormErrors(p=>({...p,name:false}));}} placeholder="e.g. Oslo Club Match #13" /></Field>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
             <Field label="Date"><input style={inp} type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} /></Field>
-            <Field label="District"><RegionSelect value={form.region} onChange={v=>setForm(f=>({...f,region:v}))} regions={regions} placeholder="— Select district —" /></Field>
+            <Field label="District" error={formErrors.region?"Required":undefined}><RegionSelect value={form.region} onChange={v=>{setForm(f=>({...f,region:v}));setFormErrors(p=>({...p,region:false}));}} regions={regions} placeholder="— Select district —" hasError={formErrors.region} /></Field>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
             <Field label="Level"><select style={inp} value={form.level} onChange={e=>{ const lv=e.target.value; setForm(f=>({...f,level:lv,combinedMDRM:lv==="Level I"?f.combinedMDRM:false})); }}>{["Level I","Level II","Level III","Level IV"].map(l=><option key={l}>{l}</option>)}</select></Field>
@@ -2091,7 +2150,7 @@ function MatchesPage({ users, matches, setMatches, regions }) {
           </div>
 
           {/* MD/RM section */}
-          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 16px",marginBottom:16}}>
+          <div style={{background:"var(--surface2)",border:`1px solid ${(formErrors.md||formErrors.rm||formErrors.mdRm)?"#f8717155":"var(--border)"}`,borderRadius:8,padding:"14px 16px",marginBottom:16}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div style={{fontSize:13,fontWeight:600,color:"var(--text-primary)"}}>Match Director / Rangemaster</div>
               {/* Combine toggle: only available for Level I */}
@@ -2107,40 +2166,43 @@ function MatchesPage({ users, matches, setMatches, regions }) {
 
             {form.combinedMDRM ? (
               // Combined: Level I only — one person fills both roles
-              <Field label="Match Director & Rangemaster" hint="Level I only — RO certification or above required">
+              <Field label="Match Director & Rangemaster" error={formErrors.mdRm?"Required":undefined} hint={!formErrors.mdRm?"Level I only — RO certification or above required":undefined}>
                 <UserPicker
                   users={eligibleRMs(form.level)}
                   value={form.md}
-                  onChange={id => setForm(f=>({...f, md:id, rm:id, mdText:""}))}
+                  onChange={id => {setForm(f=>({...f, md:id, rm:id, mdText:""}));setFormErrors(p=>({...p,mdRm:false}));}}
                   placeholder="— Select MD/RM —"
+                  hasError={formErrors.mdRm}
                 />
               </Field>
             ) : (
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
                 <div>
-                  <Field label="Match Director (MD)">
+                  <Field label="Match Director (MD)" error={formErrors.md?"Required":undefined}>
                     <UserPicker
                       users={allActiveUsers}
                       value={form.md}
-                      onChange={id => setForm(f=>({...f, md:id, mdText:""}))}
+                      onChange={id => {setForm(f=>({...f, md:id, mdText:""}));setFormErrors(p=>({...p,md:false}));}}
                       placeholder="— Select MD —"
                       labelFn={u => u.certification && u.certification!=="None" ? `${u.name} (${u.certification})` : u.name}
+                      hasError={formErrors.md && !form.mdText.trim()}
                     />
                   </Field>
                   {!form.md && (
-                    <input style={{...inp,marginTop:-8}} value={form.mdText} onChange={e=>setForm(f=>({...f,mdText:e.target.value}))} placeholder="Or type MD name (external)…" />
+                    <input style={formErrors.md&&!form.md ? {width:"100%",boxSizing:"border-box",border:"1.5px solid #f87171",background:"#f8717108",borderRadius:6,padding:"9px 12px",color:"var(--inp-text)",fontSize:14,outline:"none",fontFamily:"inherit",marginTop:-8} : {...inp,marginTop:-8}} value={form.mdText} onChange={e=>{setForm(f=>({...f,mdText:e.target.value}));setFormErrors(p=>({...p,md:false}));}} placeholder="Or type MD name (external)…" />
                   )}
                 </div>
-                <Field label="Rangemaster (RM)" hint={
-                  (form.level==="Level III"||form.level==="Level IV")
+                <Field label="Rangemaster (RM)" error={formErrors.rm?"Required":undefined} hint={
+                  !formErrors.rm ? ((form.level==="Level III"||form.level==="Level IV")
                     ? "Level III/IV requires RM certification"
-                    : "Level I/II: RO certification or above"
+                    : "Level I/II: RO certification or above") : undefined
                 }>
                   <UserPicker
                     users={eligibleRMs(form.level)}
                     value={form.rm}
-                    onChange={id => setForm(f=>({...f, rm:id}))}
+                    onChange={id => {setForm(f=>({...f, rm:id}));setFormErrors(p=>({...p,rm:false}));}}
                     placeholder="— Select RM —"
+                    hasError={formErrors.rm}
                   />
                 </Field>
               </div>
@@ -2260,7 +2322,7 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
           <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 16px"}}>
             <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:12}}>Add Disqualification</div>
             <Field label="Competitor Name / Alias">
-              <input style={inp} value={dqName} onChange={e=>{setDqName(e.target.value);setDqError("");}} placeholder="e.g. Jan Hansen" />
+              <input style={errInp(dqError)} value={dqName} onChange={e=>{setDqName(e.target.value);setDqError("");}} placeholder="e.g. Jan Hansen" />
             </Field>
             <Field label="Rule Violated">
               <select style={inp} value={dqCode} onChange={e=>setDqCode(e.target.value)}>
@@ -2314,7 +2376,7 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
             <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:12}}>Add Staff Member</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               <Field label="Name">
-                <input style={inp} value={esName} onChange={e=>{setEsName(e.target.value);setEsError("");}} placeholder="Full name" />
+                <input style={errInp(esError)} value={esName} onChange={e=>{setEsName(e.target.value);setEsError("");}} placeholder="Full name" />
               </Field>
               <Field label="Role">
                 <select style={inp} value={esRole} onChange={e=>setEsRole(e.target.value)}>
@@ -2357,6 +2419,7 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
   const [addROId,       setAddROId]       = useState("");
   const [addRole,       setAddRole]       = useState("RO");
   const [addStages,     setAddStages]     = useState("");
+  const [addROErr,      setAddROErr]      = useState(false);
   const [editStatus,    setEditStatus]    = useState(match.status);
   const [showComplete,  setShowComplete]  = useState(false);
 
@@ -2369,7 +2432,8 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
     : ["RO-P","RO","CRO","RM","MD","MD/RM"];
 
   function addAssignment() {
-    if (!addROId) return;
+    if (!addROId) { setAddROErr(true); return; }
+    setAddROErr(false);
     const stages=addStages.split(",").map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
     onUpdate({...match,assignments:[...match.assignments,{roId:addROId,role:addRole,stages,pointsAwarded:POINT_RULES[addRole]||1}]});
     setAddROId(""); setAddStages("");
@@ -2410,6 +2474,60 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
         </div>
       </div>
 
+
+      {/* Add RO — always-visible compact form when editable */}
+      {!readonly && (
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"10px 14px",marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
+            Add RO to Roster
+            <span style={{fontWeight:400,textTransform:"none",letterSpacing:0,color:"var(--text-faint)",fontSize:11}}>
+              {match.combinedMDRM ? "RO=1 · CRO=2 · RM=3 · MD/RM=4 pts" : "RO=1 · CRO=2 · RM/MD=3 · MD/RM=4 pts"}
+            </span>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 110px 130px auto",gap:8,alignItems:"center"}}>
+            <UserPicker
+              users={availableROs}
+              value={addROId}
+              onChange={id => {setAddROId(id);setAddROErr(false);}}
+              placeholder="— Choose RO —"
+              hasError={addROErr}
+            />
+            <select style={{...inp,margin:0}} value={addRole} onChange={e=>setAddRole(e.target.value)}>
+              {roleOptions.map(r=><option key={r}>{r}</option>)}
+            </select>
+            <input style={{...inp,margin:0}} value={addStages} onChange={e=>setAddStages(e.target.value)} placeholder="Stages (opt.)" title="Comma-separated, e.g. 1, 2, 5" />
+            <button style={{...btnP,whiteSpace:"nowrap",padding:"9px 14px"}} onClick={addAssignment} disabled={!addROId}>
+              + Add · <span style={{color:"#fbbf24"}}>{POINT_RULES[addRole]||1}pt</span>
+            </button>
+          </div>
+          {availableROs.length===0 && <p style={{color:"var(--text-faint)",fontSize:12,margin:"6px 0 0"}}>All eligible ROs are already assigned.</p>}
+        </div>
+      )}
+
+
+      {/* RO Roster */}
+      <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>RO Roster</div>
+      <div>
+        {match.assignments.length===0&&<p style={{color:"var(--text-faint)",fontSize:14}}>No ROs assigned yet.</p>}
+        {match.assignments.map(a=>{
+          const ro=users.find(u=>u.id===a.roId);
+          return (
+            <div key={a.roId} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
+              <div style={{flex:1}}>
+                <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{ro?.name||"Unknown"}</div>
+                <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>
+                  {ro?.certification}
+                  {a.stages&&a.stages.length>0 ? ` · Stages: ${a.stages.join(", ")}` : " · No specific stages"}
+                </div>
+              </div>
+              <Badge label={a.role} color={certColor(a.role)} />
+              <span style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,minWidth:40,textAlign:"right"}}>+{a.pointsAwarded} pts</span>
+              {!readonly&&<button onClick={()=>removeAssignment(a.roId)} style={{...btnD,padding:"4px 9px",fontSize:12}}>✕</button>}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Compact stat strip */}
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14,alignItems:"center"}}>
         <span style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#60a5fa"}}>
@@ -2429,6 +2547,30 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
           </span>
         )}
       </div>
+
+
+      {!readonly&&(
+        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:20,flexWrap:"wrap"}}>
+          <select style={{...inp,width:160}} value={editStatus} onChange={e=>setEditStatus(e.target.value)}>
+            <option>upcoming</option><option>active</option><option>completed</option>
+          </select>
+          <button style={{...btnS,padding:"9px 16px"}} onClick={()=>onUpdate({...match,status:editStatus})}>Update Status</button>
+          {match.status!=="completed"&&<button style={{...btnP,background:"#16a34a"}} onClick={()=>setShowComplete(true)}>✓ Complete Match…</button>}
+          {match.status==="completed"&&<Badge label="Completed ✓" color="#4ade80" />}
+        </div>
+      )}
+
+
+      {/* DQ / staff / complete modal */}
+      {showComplete && (
+        <CompleteMatchModal
+          match={match}
+          users={users}
+          onConfirm={completeMatch}
+          onClose={()=>setShowComplete(false)}
+        />
+      )}
+
 
       {/* DQ + extra staff summary (completed matches) */}
       {match.status==="completed" && (match.dqList?.length>0 || match.extraStaff?.length>0) && (
@@ -2462,78 +2604,6 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
           )}
         </div>
       )}
-
-      {!readonly&&(
-        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:20,flexWrap:"wrap"}}>
-          <select style={{...inp,width:160}} value={editStatus} onChange={e=>setEditStatus(e.target.value)}>
-            <option>upcoming</option><option>active</option><option>completed</option>
-          </select>
-          <button style={{...btnS,padding:"9px 16px"}} onClick={()=>onUpdate({...match,status:editStatus})}>Update Status</button>
-          {match.status!=="completed"&&<button style={{...btnP,background:"#16a34a"}} onClick={()=>setShowComplete(true)}>✓ Complete Match…</button>}
-          {match.status==="completed"&&<Badge label="Completed ✓" color="#4ade80" />}
-        </div>
-      )}
-
-      {/* DQ / staff / complete modal */}
-      {showComplete && (
-        <CompleteMatchModal
-          match={match}
-          users={users}
-          onConfirm={completeMatch}
-          onClose={()=>setShowComplete(false)}
-        />
-      )}
-
-      {/* Add RO — always-visible compact form when editable */}
-      {!readonly && (
-        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"10px 14px",marginBottom:14}}>
-          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
-            Add RO to Roster
-            <span style={{fontWeight:400,textTransform:"none",letterSpacing:0,color:"var(--text-faint)",fontSize:11}}>
-              {match.combinedMDRM ? "RO=1 · CRO=2 · RM=3 · MD/RM=4 pts" : "RO=1 · CRO=2 · RM/MD=3 · MD/RM=4 pts"}
-            </span>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 110px 130px auto",gap:8,alignItems:"center"}}>
-            <UserPicker
-              users={availableROs}
-              value={addROId}
-              onChange={id => setAddROId(id)}
-              placeholder="— Choose RO —"
-            />
-            <select style={{...inp,margin:0}} value={addRole} onChange={e=>setAddRole(e.target.value)}>
-              {roleOptions.map(r=><option key={r}>{r}</option>)}
-            </select>
-            <input style={{...inp,margin:0}} value={addStages} onChange={e=>setAddStages(e.target.value)} placeholder="Stages (opt.)" title="Comma-separated, e.g. 1, 2, 5" />
-            <button style={{...btnP,whiteSpace:"nowrap",padding:"9px 14px"}} onClick={addAssignment} disabled={!addROId}>
-              + Add · <span style={{color:"#fbbf24"}}>{POINT_RULES[addRole]||1}pt</span>
-            </button>
-          </div>
-          {availableROs.length===0 && <p style={{color:"var(--text-faint)",fontSize:12,margin:"6px 0 0"}}>All eligible ROs are already assigned.</p>}
-        </div>
-      )}
-
-      {/* RO Roster */}
-      <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>RO Roster</div>
-      <div>
-        {match.assignments.length===0&&<p style={{color:"var(--text-faint)",fontSize:14}}>No ROs assigned yet.</p>}
-        {match.assignments.map(a=>{
-          const ro=users.find(u=>u.id===a.roId);
-          return (
-            <div key={a.roId} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
-              <div style={{flex:1}}>
-                <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{ro?.name||"Unknown"}</div>
-                <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>
-                  {ro?.certification}
-                  {a.stages&&a.stages.length>0 ? ` · Stages: ${a.stages.join(", ")}` : " · No specific stages"}
-                </div>
-              </div>
-              <Badge label={a.role} color={certColor(a.role)} />
-              <span style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,minWidth:40,textAlign:"right"}}>+{a.pointsAwarded} pts</span>
-              {!readonly&&<button onClick={()=>removeAssignment(a.roId)} style={{...btnD,padding:"4px 9px",fontSize:12}}>✕</button>}
-            </div>
-          );
-        })}
-      </div>
     </Modal>
   );
 }
@@ -2558,575 +2628,396 @@ function PointsPage({ users, setUsers, matches }) {
     const amt=parseInt(adjustAmt);
     if (!adjustId||isNaN(amt)||amt===0) return;
     const ro=users.find(u=>u.id===adjustId);
-    setUsers(prev=>prev.map(u=>u.id===adjustId?{...u,points:Math.max(0,u.points+amt)}:u));
-    setAdjustLog(prev=>[{name:ro?.name,amt,reason:adjustReason||"Manual adjustment",ts:new Date().toLocaleString()},...prev]);
-    setAdjustAmt(""); setAdjustReason("");
+    if (!ro) return;
+    setUsers(prev=>prev.map(u=>u.id===adjustId?{...u,points:u.points+amt}:u));
+    setAdjustLog(prev=>[{roId:adjustId,roName:ro.name,amt,reason:adjustReason||"Manual adjustment",date:new Date().toISOString().slice(0,10)},...prev]);
+    setAdjustId(""); setAdjustAmt(""); setAdjustReason("");
   }
 
-  const matchHistory = useMemo(()=>{
-    const events=[];
-    matches.filter(m=>m.status==="completed").forEach(m=>{
-      m.assignments.forEach(a=>{
-        const u=users.find(u=>u.id===a.roId);
-        events.push({matchName:m.name,date:m.date,roName:u?.name||"Unknown",role:a.role,pts:a.pointsAwarded});
-      });
+  // Build ledger from matches
+  const ledger = [];
+  matches.forEach(m=>{
+    if (m.status!=="completed") return;
+    m.assignments.forEach(a=>{
+      const ro=users.find(u=>u.id===a.roId);
+      if (ro) ledger.push({ roId:a.roId, name:ro.name, matchName:m.name, date:m.date, role:a.role, amt:a.pointsAwarded });
     });
-    return events.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  },[matches,users]);
+  });
+  adjustLog.forEach(e=>ledger.push({roId:e.roId,name:e.roName,matchName:"Manual",date:e.date,role:"Adj.",amt:e.amt,reason:e.reason}));
+  ledger.sort((a,b)=>b.date.localeCompare(a.date));
 
   return (
-    <div>
-      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Activity Points</h1>
-      <p style={{color:"var(--text-faint)",marginBottom:28,fontSize:14}}>Points ledger and distribution history</p>
-      <div style={{display:"grid",gridTemplateColumns:adminAccess?"1fr 1fr":"1fr",gap:20,marginBottom:28}}>
-        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
-          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points Standings</h3>
-          {sorted.map((u,i)=>(
-            <div key={u.id} style={{marginBottom:12}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:11,color:i<3?"#facc15":"var(--text-faint)",fontWeight:700,minWidth:20}}>#{i+1}</span>
-                  <span style={{color:"var(--text-primary)",fontSize:14}}>{u.name}</span>
-                  <Badge label={u.certification||"None"} color={certColor(u.certification)} />
-                </div>
-                <span style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16}}>{u.points}</span>
-              </div>
-              <div style={{background:"var(--border)",borderRadius:4,height:4,overflow:"hidden"}}>
+    <div style={{padding:"28px 32px",maxWidth:900}}>
+      <h1 style={{margin:"0 0 6px",fontSize:26,fontWeight:800,color:"var(--text-primary)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.04em"}}>Points Ledger</h1>
+      <p style={{margin:"0 0 28px",color:"var(--text-muted)",fontSize:14}}>RO activity points earned through match assignments.</p>
+
+      {/* Leaderboard */}
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,padding:"18px 22px",marginBottom:24}}>
+        <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>Leaderboard</div>
+        {sorted.map((u,i)=>(
+          <div key={u.id} style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+            <div style={{width:22,textAlign:"right",color:"var(--text-faint)",fontSize:12,fontWeight:700}}>{i+1}</div>
+            <div style={{width:32,height:32,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#fff",flexShrink:0}}>{u.name.charAt(0)}</div>
+            <div style={{flex:1}}>
+              <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{u.name}</div>
+              <div style={{background:"var(--border)",borderRadius:4,height:6,overflow:"hidden",marginTop:4}}>
                 <div style={{width:`${(u.points/max)*100}%`,background:`hsl(${Math.max(0,120-i/sorted.length*90)},70%,50%)`,height:"100%",borderRadius:4}} />
               </div>
             </div>
-          ))}
-        </div>
-        {adminAccess&&(
-          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
-            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Manual Adjustment</h3>
-            <p style={{color:"var(--text-faint)",fontSize:13,marginBottom:16}}>Positive adds, negative deducts.</p>
-            <Field label="User">
-              <UserPicker
-                users={users}
-                value={adjustId}
-                onChange={id => setAdjustId(id)}
-                placeholder="— Select user —"
-                labelFn={u => `${u.name} (${u.points} pts)`}
-              />
-            </Field>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <Field label="Amount"><input style={inp} type="number" value={adjustAmt} onChange={e=>setAdjustAmt(e.target.value)} placeholder="+2 or -1" /></Field>
-              <Field label="Reason"><input style={inp} value={adjustReason} onChange={e=>setAdjustReason(e.target.value)} placeholder="Reason…" /></Field>
-            </div>
-            <button style={btnP} onClick={applyAdjust}>Apply</button>
-            {adjustLog.length>0&&(
-              <div style={{marginTop:16}}>
-                <h4 style={{fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>This session</h4>
-                {adjustLog.slice(0,5).map((l,i)=>(
-                  <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid var(--border)",fontSize:13}}>
-                    <span style={{color:"var(--text-second)"}}>{l.name} — {l.reason}</span>
-                    <span style={{color:l.amt>0?"#4ade80":"#f87171",fontWeight:700}}>{l.amt>0?"+":"-"}{l.amt} pts</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:18,minWidth:48,textAlign:"right"}}>{u.points} pts</div>
           </div>
-        )}
+        ))}
       </div>
-      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
-        <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points from Completed Matches</h3>
-        {matchHistory.length===0&&<p style={{color:"var(--text-faint)"}}>No completed matches yet.</p>}
-        {matchHistory.length>0&&(
-          <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead><tr>{["Match","Date","Range Officer","Role","Points"].map(h=><th key={h} style={{padding:"8px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:"1px solid var(--border)"}}>{h}</th>)}</tr></thead>
-            <tbody>
-              {matchHistory.map((e,i)=>(
-                <tr key={i} style={{borderBottom:"1px solid var(--surface3)"}}>
-                  <td style={{padding:"10px 12px",color:"var(--text-primary)",fontSize:13}}>{e.matchName}</td>
-                  <td style={{padding:"10px 12px",color:"var(--text-muted)",fontSize:13}}>{fmtDate(e.date)}</td>
-                  <td style={{padding:"10px 12px",color:"var(--text-second)",fontSize:13}}>{e.roName}</td>
-                  <td style={{padding:"10px 12px"}}><Badge label={e.role} color={certColor(e.role)} /></td>
-                  <td style={{padding:"10px 12px",color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16}}>+{e.pts}</td>
-                </tr>
+
+      {/* Manual adjustment (admin only) */}
+      {adminAccess && (
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,padding:"18px 22px",marginBottom:24}}>
+          <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>Manual Adjustment</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 100px 1fr auto",gap:8}}>
+            <UserPicker users={users.filter(u=>u.active)} value={adjustId} onChange={setAdjustId} placeholder="— Select RO —" />
+            <input style={inp} type="number" value={adjustAmt} onChange={e=>setAdjustAmt(e.target.value)} placeholder="±pts" />
+            <input style={inp} value={adjustReason} onChange={e=>setAdjustReason(e.target.value)} placeholder="Reason (optional)" />
+            <button style={{...btnP,padding:"9px 16px"}} onClick={applyAdjust} disabled={!adjustId||!adjustAmt}>Apply</button>
+          </div>
+        </div>
+      )}
+
+      {/* Ledger table */}
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,overflow:"hidden"}}>
+        <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",padding:"14px 18px",borderBottom:"1px solid var(--border)"}}>Activity Log</div>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead>
+            <tr style={{background:"var(--surface3)"}}>
+              {["RO","Match","Date","Role","Points"].map(h=>(
+                <th key={h} style={{padding:"10px 14px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid var(--border)"}}>{h}</th>
               ))}
-            </tbody>
-          </table>
-        )}
+            </tr>
+          </thead>
+          <tbody>
+            {ledger.map((e,i)=>(
+              <tr key={i} style={{background:i%2===0?"transparent":"var(--surface3)"}}>
+                <td style={{padding:"10px 14px",color:"var(--text-primary)",fontSize:13,fontWeight:600}}>{e.name}</td>
+                <td style={{padding:"10px 14px",color:"var(--text-second)",fontSize:13}}>{e.matchName}</td>
+                <td style={{padding:"10px 14px",color:"var(--text-muted)",fontSize:12}}>{fmtDate(e.date)}</td>
+                <td style={{padding:"10px 14px"}}><Badge label={e.role} color={certColor(e.role)} /></td>
+                <td style={{padding:"10px 14px",color:e.amt>0?"#4ade80":"#f87171",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",fontSize:15}}>{e.amt>0?"+":"-"}{e.amt} pts</td>
+              </tr>
+            ))}
+            {ledger.length===0&&<tr><td colSpan={5} style={{padding:"20px 14px",color:"var(--text-faint)",fontSize:13,textAlign:"center"}}>No activity yet.</td></tr>}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RO UPGRADE CHECKLIST LOGIC
+// RO CHECKLIST
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RO_UPGRADE_CONFIG = {
-  minPoints:       3,       // minimum match points earned
-  minActiveYears:  0.5,     // years since joining
-  quarantineDays:  180,     // days between RO applications
-};
+const RO_UPGRADE_CONFIG = { minPoints: 3, minActiveYears: 0.5, quarantineDays: 180 };
 
 function computeROChecklist(user) {
-  const today = new Date();
-  const joined = user.joined ? new Date(user.joined) : null;
-  const yearsActive = joined ? (today - joined) / (1000 * 60 * 60 * 24 * 365.25) : 0;
+  const now = new Date();
+  const joinDate = new Date(user.joined);
+  const yearsActive = (now - joinDate) / (1000*60*60*24*365.25);
   const lastApp = user.lastROApplication ? new Date(user.lastROApplication) : null;
-  const daysSinceApp = lastApp ? (today - lastApp) / (1000 * 60 * 60 * 24) : Infinity;
-
-  const hasLevelI = (user.seminarHistory || []).some(
-    s => s.type === "Level I" && s.graduated && s.diplomaVerified
-  );
+  const daysSinceApp = lastApp ? (now - lastApp) / (1000*60*60*24) : Infinity;
 
   return [
-    {
-      key:  "active",
-      label:"Active member",
-      desc: "Account must be active (not deactivated or on leave)",
-      pass: !!user.active,
-    },
-    {
-      key:  "photo",
-      label:"Approved profile photo",
-      desc: "A profile photo must be on file and approved by an admin",
-      pass: !!user.profilePhotoApproved,
-      canOverride: true,
-    },
-    {
-      key:  "points",
-      label:`Minimum ${RO_UPGRADE_CONFIG.minPoints} match points`,
-      desc: `Must have earned at least ${RO_UPGRADE_CONFIG.minPoints} points working as RO-P at matches`,
-      pass: (user.points || 0) >= RO_UPGRADE_CONFIG.minPoints,
-    },
-    {
-      key:  "seminar",
-      label:"IROA Level I Seminar",
-      desc: "Must have graduated from a verified IROA Level I seminar",
-      pass: hasLevelI,
-      canOverride: true,
-    },
-    {
-      key:  "years",
-      label:`Minimum ${RO_UPGRADE_CONFIG.minActiveYears} active year(s)`,
-      desc: `Must have been a registered member for at least ${RO_UPGRADE_CONFIG.minActiveYears * 12} months`,
-      pass: yearsActive >= RO_UPGRADE_CONFIG.minActiveYears,
-    },
-    {
-      key:  "quarantine",
-      label:`Application quarantine (${RO_UPGRADE_CONFIG.quarantineDays} days)`,
-      desc: `Must not have submitted an RO upgrade application within the last ${RO_UPGRADE_CONFIG.quarantineDays} days`,
-      pass: daysSinceApp >= RO_UPGRADE_CONFIG.quarantineDays,
-      detail: lastApp ? `Last application: ${fmtDate(user.lastROApplication)}` : "No previous application",
-    },
+    { label: `Points ≥ ${RO_UPGRADE_CONFIG.minPoints} (current: ${user.points})`, pass: user.points >= RO_UPGRADE_CONFIG.minPoints },
+    { label: `Active ≥ ${RO_UPGRADE_CONFIG.minActiveYears} years (${yearsActive.toFixed(1)} yrs)`, pass: yearsActive >= RO_UPGRADE_CONFIG.minActiveYears },
+    { label: `No application in last ${RO_UPGRADE_CONFIG.quarantineDays} days`, pass: daysSinceApp >= RO_UPGRADE_CONFIG.quarantineDays },
+    { label: "Current certification: RO-P", pass: user.certification === "RO-P" },
+    { label: "Account active", pass: user.active },
   ];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SEMINARS PAGE
+// SEMINARS
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SeminarsPage({ users, setUsers, seminars, setSeminars }) {
   const { currentUser } = useAuth();
   const canEdit = canManageMatches(currentUser);
 
-  const [view,       setView]       = useState(null);    // seminar being viewed
+  const blank = { name:"", date:new Date().toISOString().slice(0,10), location:"", type:"Level I", instructor:"", status:"upcoming", enrollments:[] };
   const [showCreate, setShowCreate] = useState(false);
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-
-  const blank = {
-    name:"", date:new Date().toISOString().slice(0,10),
-    location:"", type:"Level I", instructor:"", status:"upcoming", enrollments:[]
-  };
   const [form, setForm] = useState(blank);
-
-  const filtered = seminars.filter(s =>
-    (typeFilter==="All"  || s.type===typeFilter) &&
-    (statusFilter==="All"|| s.status===statusFilter)
-  );
+  const [semFe, setSemFe]   = useState({});
+  const [detail, setDetail] = useState(null);
 
   function createSeminar() {
-    if (!form.name.trim()) return;
-    setSeminars(prev=>[...prev, { ...form, id:"s"+Date.now() }]);
+    const errs = {};
+    if (!form.name.trim())       errs.name       = true;
+    if (!form.location.trim())   errs.location   = true;
+    if (!form.instructor)        errs.instructor = true;
+    if (Object.keys(errs).length) { setSemFe(errs); return; }
+    setSemFe({});
+    const s = { ...form, id:"s"+(seminars.length+1)+(Date.now()%10000) };
+    setSeminars(prev=>[...prev, s]);
     setShowCreate(false); setForm(blank);
   }
 
-  // When a seminar is marked completed, auto-grant RO-P to graduated students with None cert
-  function completeSeminar(seminar) {
-    const updated = { ...seminar, status:"completed" };
-    setSeminars(prev => prev.map(s => s.id===seminar.id ? updated : s));
-
-    // Grant RO-P to graduates who have None certification
-    seminar.enrollments.forEach(e => {
-      if (!e.graduated) return;
-      setUsers(prev => prev.map(u => {
-        if (u.id !== e.userId) return u;
-        if (certRank(u.certification) > 0) return u; // already has a cert
-        const entry = { cert:"RO-P", grantedBy:"System (Seminar)", date:new Date().toISOString().slice(0,10), note:`Graduated: ${seminar.name}` };
-        const semEntry = { seminarId:seminar.id, type:seminar.type, graduated:true, diplomaVerified:e.diplomaVerified, diplomaDate:e.diplomaDate||new Date().toISOString().slice(0,10) };
-        return {
-          ...u,
-          certification: "RO-P",
-          certHistory: [...(u.certHistory||[]), entry],
-          seminarHistory: [...(u.seminarHistory||[]), semEntry],
-        };
-      }));
-    });
-
-    // Also update seminarHistory for graduated students already above None
-    seminar.enrollments.forEach(e => {
-      if (!e.graduated) return;
-      setUsers(prev => prev.map(u => {
-        if (u.id !== e.userId) return u;
-        if (certRank(u.certification) === 0) return u; // handled above
-        const already = (u.seminarHistory||[]).some(sh=>sh.seminarId===seminar.id);
-        if (already) return u;
-        const semEntry = { seminarId:seminar.id, type:seminar.type, graduated:true, diplomaVerified:e.diplomaVerified, diplomaDate:e.diplomaDate||new Date().toISOString().slice(0,10) };
-        return { ...u, seminarHistory:[...(u.seminarHistory||[]), semEntry] };
-      }));
-    });
-
-    setView(updated);
+  function updateSeminar(updated) {
+    setSeminars(prev=>prev.map(s=>s.id===updated.id?updated:s));
+    if (detail?.id===updated.id) setDetail(updated);
   }
 
-  const typeColor = t => t==="Level I" ? "#38bdf8" : "#a78bfa";
+  function completeSeminar(seminar) {
+    // Graduate enrolled users who attended
+    setUsers(prev=>prev.map(u=>{
+      const e = seminar.enrollments.find(en=>en.userId===u.id && en.attended && en.graduated);
+      if (!e) return u;
+      if (certRank(u.certification) > 0) return u;
+      const entry = { cert:"RO-P", grantedBy:"System (Seminar)", date:new Date().toISOString().slice(0,10), note:`Graduated: ${seminar.name}` };
+      const semEntry = { seminarId:seminar.id, type:seminar.type, graduated:true, diplomaVerified:e.diplomaVerified, diplomaDate:e.diplomaDate||new Date().toISOString().slice(0,10) };
+      return { ...u, certification:"RO-P", certHistory:[...(u.certHistory||[]),entry], seminarHistory:[...(u.seminarHistory||[]),semEntry] };
+    }));
+    const completed = { ...seminar, status:"completed" };
+    updateSeminar(completed);
+  }
+
+  const upcoming  = seminars.filter(s=>s.status==="upcoming");
+  const completed = seminars.filter(s=>s.status==="completed");
+
+  function SemCard({ s }) {
+    const instructor = users.find(u=>u.id===s.instructor);
+    return (
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,padding:"16px 18px",display:"flex",alignItems:"center",gap:16}}>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
+            <span style={{color:"var(--text-primary)",fontWeight:700,fontSize:15}}>{s.name}</span>
+            <Badge label={s.type} color="#7c8cf8" />
+            <Badge label={s.status} color={statusColor(s.status)} />
+          </div>
+          <div style={{display:"flex",gap:16,fontSize:12,color:"var(--text-muted)",flexWrap:"wrap"}}>
+            <span>📅 {fmtDate(s.date)}</span>
+            <span>📍 {s.location}</span>
+            <span>👤 {instructor?.name||"Unknown"}</span>
+            <span>👥 {s.enrollments.length} enrolled</span>
+          </div>
+        </div>
+        <button style={{...btnS,padding:"7px 14px",fontSize:13}} onClick={()=>setDetail(s)}>View</button>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
+    <div style={{padding:"28px 32px",maxWidth:900}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <div>
-          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Seminars</h1>
-          <p style={{color:"var(--text-faint)",margin:0,fontSize:14}}>IROA certification seminars — {seminars.length} total</p>
+          <h1 style={{margin:"0 0 4px",fontSize:26,fontWeight:800,color:"var(--text-primary)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.04em"}}>Seminars</h1>
+          <p style={{margin:0,color:"var(--text-muted)",fontSize:14}}>IROA Level I/II seminars and graduation records.</p>
         </div>
-        {canEdit && <button style={btnP} onClick={()=>{setForm(blank);setShowCreate(true);}}>+ New Seminar</button>}
+        {canEdit&&<button style={{...btnP,padding:"10px 18px"}} onClick={()=>{setShowCreate(true);setSemFe({});}}>+ Create Seminar</button>}
       </div>
 
-      {/* Filters */}
-      <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-        <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} style={{...inp,width:150}}>
-          <option value="All">All Types</option>
-          <option value="Level I">Level I</option>
-          <option value="Level II">Level II</option>
-        </select>
-        <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} style={{...inp,width:150}}>
-          <option value="All">All Status</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="completed">Completed</option>
-        </select>
-      </div>
-
-      {/* Seminar cards */}
-      <div style={{display:"flex",flexDirection:"column",gap:12}}>
-        {filtered.map(s => {
-          const instructor = users.find(u=>u.id===s.instructor);
-          const graduated  = s.enrollments.filter(e=>e.graduated).length;
-          return (
-            <div key={s.id} style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,padding:"18px 22px",display:"flex",gap:18,alignItems:"center"}}>
-              <div style={{flex:1}}>
-                <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:6}}>
-                  <span style={{fontSize:16,fontWeight:700,color:"var(--text-primary)"}}>{s.name}</span>
-                  <Badge label={s.type} color={typeColor(s.type)} />
-                  <Badge label={s.status} color={statusColor(s.status)} />
-                </div>
-                <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,color:"var(--text-muted)"}}>
-                  <span>📅 {fmtDate(s.date)}</span>
-                  {s.location && <span>📍 {s.location}</span>}
-                  <span>👤 Instructor: {instructor?.name||"—"}</span>
-                  <span>🎓 {graduated}/{s.enrollments.length} graduated</span>
-                </div>
-              </div>
-              <button onClick={()=>setView(s)} style={{...btnS,padding:"8px 16px",fontSize:13,whiteSpace:"nowrap"}}>
-                {canEdit ? "Manage" : "View"}
-              </button>
-            </div>
-          );
-        })}
-        {filtered.length===0 && (
-          <div style={{textAlign:"center",padding:60,color:"var(--text-faint)",fontSize:14}}>
-            No seminars found. {canEdit && "Create the first one above."}
-          </div>
-        )}
-      </div>
-
-      {/* Create modal */}
       {showCreate && (
-        <Modal title="New Seminar" onClose={()=>setShowCreate(false)}>
-          <Field label="Seminar Name">
-            <input style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. IROA Level I — Oslo Spring 2026" />
+        <Modal title="Create Seminar" onClose={()=>{setShowCreate(false);setSemFe({});}}>
+          <Field label="Name" error={semFe.name?"Required":undefined}><input style={errInp(semFe.name)} value={form.name} onChange={e=>{setForm(f=>({...f,name:e.target.value}));setSemFe(p=>({...p,name:false}));}} placeholder="e.g. IROA Level I — Oslo Spring 2026" /></Field>
+          <Field label="Date"><input style={inp} type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} /></Field>
+          <Field label="Location" error={semFe.location?"Required":undefined}><input style={errInp(semFe.location)} value={form.location} onChange={e=>{setForm(f=>({...f,location:e.target.value}));setSemFe(p=>({...p,location:false}));}} placeholder="Venue / club name" /></Field>
+          <Field label="Type">
+            <select style={inp} value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}>
+              <option>Level I</option><option>Level II</option>
+            </select>
           </Field>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-            <Field label="Type">
-              <select style={inp} value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}>
-                <option value="Level I">Level I</option>
-                <option value="Level II">Level II</option>
-              </select>
-            </Field>
-            <Field label="Date">
-              <input style={inp} type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} />
-            </Field>
-          </div>
-          <Field label="Location">
-            <input style={inp} value={form.location} onChange={e=>setForm(f=>({...f,location:e.target.value}))} placeholder="Club / venue name" />
+          <Field label="Instructor" error={semFe.instructor?"Required":undefined}>
+            <UserPicker users={users.filter(u=>u.active&&certRank(u.certification)>=3)} value={form.instructor} onChange={id=>{setForm(f=>({...f,instructor:id}));setSemFe(p=>({...p,instructor:false}));}} placeholder="— Select instructor —" hasError={semFe.instructor} />
           </Field>
-          <Field label="Instructor" hint="Must be an RM or Admin to instruct">
-            <UserPicker
-              users={users.filter(u=>u.active&&(u.role==="rm"||u.role==="admin"))}
-              value={form.instructor}
-              onChange={id => setForm(f=>({...f, instructor:id}))}
-              placeholder="— Select instructor —"
-            />
-          </Field>
-          <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}>
-            <button style={btnS} onClick={()=>setShowCreate(false)}>Cancel</button>
-            <button style={btnP} onClick={createSeminar}>Create Seminar</button>
+          <div style={{display:"flex",gap:10,marginTop:6}}>
+            <button style={{...btnP,flex:1}} onClick={createSeminar} disabled={!form.name||!form.location}>Create Seminar</button>
+            <button style={{...btnS}} onClick={()=>setShowCreate(false)}>Cancel</button>
           </div>
         </Modal>
       )}
 
-      {/* Manage/View seminar modal */}
-      {view && (
+      {detail && (
         <SeminarDetailModal
-          seminar={view}
+          seminar={detail}
           users={users}
           setUsers={setUsers}
           canEdit={canEdit}
-          onClose={()=>setView(null)}
-          onUpdate={updated=>{
-            setSeminars(prev=>prev.map(s=>s.id===updated.id?updated:s));
-            setView(updated);
-          }}
+          onClose={()=>setDetail(null)}
+          onUpdate={updateSeminar}
           onComplete={completeSeminar}
         />
       )}
+
+      {upcoming.length>0&&(
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Upcoming</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {upcoming.map(s=><SemCard key={s.id} s={s} />)}
+          </div>
+        </div>
+      )}
+      {completed.length>0&&(
+        <div>
+          <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Completed</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {completed.map(s=><SemCard key={s.id} s={s} />)}
+          </div>
+        </div>
+      )}
+      {seminars.length===0&&<p style={{color:"var(--text-faint)",fontSize:14}}>No seminars yet.</p>}
     </div>
   );
 }
 
 function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpdate, onComplete }) {
-  const [tab, setTab]           = useState("students"); // "students" | "enroll"
-  const [enrollSearch, setEnrollSearch] = useState("");
-  const [confirmComplete, setConfirmComplete] = useState(false);
+  const [tab, setTab] = useState("roster");
+  const [enrollId, setEnrollId] = useState("");
 
-  const enrolledIds = new Set(seminar.enrollments.map(e=>e.userId));
-  const instructor  = users.find(u=>u.id===seminar.instructor);
-
-  // Candidates for enrollment: active users not already enrolled
-  const candidates = users.filter(u =>
-    u.active &&
-    !enrolledIds.has(u.id) &&
-    (u.name.toLowerCase().includes(enrollSearch.toLowerCase()) ||
-     u.email.toLowerCase().includes(enrollSearch.toLowerCase()))
-  );
+  const enrolled = seminar.enrollments || [];
+  const notEnrolled = users.filter(u=>u.active&&!enrolled.find(e=>e.userId===u.id));
+  const instructor = users.find(u=>u.id===seminar.instructor);
 
   function enroll(userId) {
-    const updated = { ...seminar, enrollments:[...seminar.enrollments, { userId, attended:false, graduated:false, diplomaVerified:false, diplomaDate:null }] };
+    if (!userId) return;
+    const updated = { ...seminar, enrollments:[...enrolled, { userId, attended:false, graduated:false, diplomaVerified:false, diplomaDate:"" }] };
+    onUpdate(updated);
+    setEnrollId("");
+  }
+
+  function updateEnrollment(userId, patch) {
+    const updated = { ...seminar, enrollments:enrolled.map(e=>e.userId===userId?{...e,...patch}:e) };
     onUpdate(updated);
   }
 
   function removeEnrollment(userId) {
-    const updated = { ...seminar, enrollments:seminar.enrollments.filter(e=>e.userId!==userId) };
+    const updated = { ...seminar, enrollments:enrolled.filter(e=>e.userId!==userId) };
     onUpdate(updated);
   }
-
-  function updateEnrollment(userId, patch) {
-    const updated = { ...seminar, enrollments:seminar.enrollments.map(e=>e.userId===userId?{...e,...patch}:e) };
-    onUpdate(updated);
-  }
-
-  const typeColor = t => t==="Level I" ? "#38bdf8" : "#a78bfa";
-  const graduated = seminar.enrollments.filter(e=>e.graduated).length;
-
-  const tabBtn = t => ({
-    padding:"7px 18px", fontSize:13, fontWeight:600, cursor:"pointer", border:"none", borderRadius:5,
-    background:tab===t?"#e85d2c":"transparent", color:tab===t?"#fff":"var(--text-muted)"
-  });
 
   return (
     <Modal title={seminar.name} onClose={onClose} wide>
-      {/* Header info */}
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:16}}>
-        <Badge label={seminar.type}   color={typeColor(seminar.type)} />
-        <Badge label={seminar.status} color={statusColor(seminar.status)} />
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:10,marginBottom:20}}>
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
         <StatCard label="Date"       value={fmtDate(seminar.date)}       accent="#60a5fa" />
         <StatCard label="Enrolled"   value={seminar.enrollments.length}  accent="var(--text-second)" />
-        <StatCard label="Graduated"  value={graduated}                   accent="#4ade80" />
+        <StatCard label="Graduated"  value={enrolled.filter(e=>e.graduated).length} accent="#4ade80" />
         <StatCard label="Instructor" value={instructor?.name||"—"}       accent="#f97316" />
       </div>
-      {seminar.location && <div style={{color:"var(--text-muted)",fontSize:13,marginBottom:16}}>📍 {seminar.location}</div>}
 
       {/* Tabs */}
-      <div style={{display:"flex",gap:4,background:"var(--surface)",padding:4,borderRadius:7,marginBottom:20,width:"fit-content"}}>
-        <button style={tabBtn("students")} onClick={()=>setTab("students")}>🎓 Student Roster</button>
-        {canEdit && seminar.status==="upcoming" && <button style={tabBtn("enroll")} onClick={()=>setTab("enroll")}>➕ Enroll Students</button>}
+      <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"1px solid var(--border)",paddingBottom:0}}>
+        {["roster","enroll"].map(t=>(
+          <button key={t} onClick={()=>setTab(t)} style={{
+            background:"none",border:"none",borderBottom:tab===t?"2px solid #e85d2c":"2px solid transparent",
+            color:tab===t?"var(--text-primary)":"var(--text-muted)",padding:"8px 14px",cursor:"pointer",
+            fontSize:13,fontWeight:tab===t?700:400,marginBottom:-1,textTransform:"capitalize"
+          }}>{t==="enroll"?"+ Enroll":t.charAt(0).toUpperCase()+t.slice(1)}</button>
+        ))}
       </div>
 
-      {/* Student roster tab */}
-      {tab==="students" && (
-        <div>
-          {seminar.enrollments.length === 0 ? (
-            <div style={{textAlign:"center",padding:40,color:"var(--text-faint)",fontSize:13}}>No students enrolled yet.</div>
-          ) : (
-            <table style={{width:"100%",borderCollapse:"collapse"}}>
-              <thead>
-                <tr style={{background:"var(--surface)"}}>
-                  {["Student","Current Cert","Attended","Graduated","Diploma Verified","Diploma Date", canEdit?"":""].map((h,i)=>(
-                    <th key={i} style={{padding:"10px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid var(--border)"}}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {seminar.enrollments.map((e,i) => {
-                  const u = users.find(x=>x.id===e.userId);
-                  if (!u) return null;
-                  return (
-                    <tr key={e.userId} style={{borderBottom:"1px solid var(--surface3)",background:i%2===0?"transparent":"var(--surface)"}}>
-                      <td style={{padding:"10px 12px"}}>
-                        <div style={{fontWeight:600,color:"var(--text-primary)",fontSize:13}}>{u.name}</div>
-                        <div style={{color:"var(--text-faint)",fontSize:11}}>{u.email}</div>
-                      </td>
-                      <td style={{padding:"10px 12px"}}><Badge label={u.certification||"None"} color={certColor(u.certification)} /></td>
-                      <td style={{padding:"10px 12px"}}>
-                        {canEdit
-                          ? <input type="checkbox" checked={e.attended} onChange={ev=>updateEnrollment(e.userId,{attended:ev.target.checked})} style={{width:16,height:16,accentColor:"#e85d2c"}} />
-                          : <span style={{color:e.attended?"#4ade80":"var(--text-faint)"}}>{e.attended?"✓":"—"}</span>
-                        }
-                      </td>
-                      <td style={{padding:"10px 12px"}}>
-                        {canEdit
-                          ? <input type="checkbox" checked={e.graduated} onChange={ev=>updateEnrollment(e.userId,{graduated:ev.target.checked})} style={{width:16,height:16,accentColor:"#4ade80"}} />
-                          : <span style={{color:e.graduated?"#4ade80":"var(--text-faint)"}}>{e.graduated?"✓":"—"}</span>
-                        }
-                      </td>
-                      <td style={{padding:"10px 12px"}}>
-                        {canEdit
-                          ? <input type="checkbox" checked={e.diplomaVerified} onChange={ev=>updateEnrollment(e.userId,{diplomaVerified:ev.target.checked})} style={{width:16,height:16,accentColor:"#38bdf8"}} />
-                          : <span style={{color:e.diplomaVerified?"#38bdf8":"var(--text-faint)"}}>{e.diplomaVerified?"✓":"—"}</span>
-                        }
-                      </td>
-                      <td style={{padding:"10px 12px"}}>
-                        {canEdit
-                          ? <input type="date" style={{...inp,width:140,padding:"5px 8px",fontSize:12}} value={e.diplomaDate||""} onChange={ev=>updateEnrollment(e.userId,{diplomaDate:ev.target.value})} />
-                          : <span style={{color:"var(--text-muted)",fontSize:12}}>{e.diplomaDate?fmtDate(e.diplomaDate):"—"}</span>
-                        }
-                      </td>
-                      {canEdit && (
-                        <td style={{padding:"10px 12px"}}>
-                          {seminar.status==="upcoming" && (
-                            <button onClick={()=>removeEnrollment(e.userId)} style={{...btnD,padding:"4px 10px",fontSize:11}}>Remove</button>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-
-          {/* Complete seminar button */}
-          {canEdit && seminar.status==="upcoming" && seminar.enrollments.length>0 && (
-            <div style={{marginTop:24,borderTop:"1px solid var(--border)",paddingTop:20}}>
-              {!confirmComplete ? (
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
-                  <div style={{fontSize:13,color:"var(--text-muted)"}}>
-                    Completing the seminar will auto-grant <Badge label="RO-P" color="#86efac" /> to any students who graduated and have no existing certification.
-                  </div>
-                  <button style={{...btnP,background:"#16a34a",whiteSpace:"nowrap"}} onClick={()=>setConfirmComplete(true)}>
-                    ✓ Complete Seminar
-                  </button>
-                </div>
-              ) : (
-                <div style={{background:"#111c11",border:"1px solid #166534",borderRadius:8,padding:16}}>
-                  <div style={{color:"#86efac",fontWeight:600,marginBottom:10}}>
-                    Complete seminar and grant RO-P to {seminar.enrollments.filter(e=>e.graduated).length} graduating student(s)?
-                  </div>
-                  <div style={{display:"flex",gap:8}}>
-                    <button style={{...btnP,background:"#16a34a"}} onClick={()=>{ onComplete(seminar); setConfirmComplete(false); }}>Confirm</button>
-                    <button style={btnS} onClick={()=>setConfirmComplete(false)}>Cancel</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+      {tab==="enroll" && canEdit && seminar.status!=="completed" && (
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <div style={{flex:1}}>
+            <UserPicker users={notEnrolled} value={enrollId} onChange={setEnrollId} placeholder="— Select user to enroll —" />
+          </div>
+          <button style={{...btnP,padding:"9px 16px"}} onClick={()=>enroll(enrollId)} disabled={!enrollId}>Enroll</button>
         </div>
       )}
 
-      {/* Enroll tab */}
-      {tab==="enroll" && canEdit && (
+      {tab==="roster" && (
         <div>
-          <input
-            style={{...inp,marginBottom:14}}
-            value={enrollSearch}
-            onChange={e=>setEnrollSearch(e.target.value)}
-            placeholder="Search by name or email…"
-          />
-          {candidates.length===0 ? (
-            <div style={{color:"var(--text-faint)",fontSize:13,textAlign:"center",padding:30}}>No eligible users found.</div>
-          ) : (
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {candidates.map(u=>(
-                <div key={u.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"var(--surface)",border:"1px solid var(--border)",borderRadius:8,padding:"12px 16px"}}>
-                  <div>
-                    <div style={{fontWeight:600,color:"var(--text-primary)",fontSize:13}}>{u.name}</div>
-                    <div style={{color:"var(--text-faint)",fontSize:11}}>{u.email} · {u.region||"No district"}</div>
-                  </div>
-                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                    <Badge label={u.certification||"None"} color={certColor(u.certification)} />
-                    <button onClick={()=>enroll(u.id)} style={{...btnP,padding:"6px 14px",fontSize:12}}>Enroll</button>
-                  </div>
+          {enrolled.length===0&&<p style={{color:"var(--text-faint)",fontSize:14}}>No one enrolled yet.</p>}
+          {enrolled.map(e=>{
+            const u=users.find(u=>u.id===e.userId);
+            return (
+              <div key={e.userId} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
+                <div style={{width:32,height:32,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#fff",flexShrink:0}}>{u?.name.charAt(0)||"?"}</div>
+                <div style={{flex:1}}>
+                  <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{u?.name||"Unknown"}</div>
+                  <div style={{color:"var(--text-muted)",fontSize:12}}>{u?.certification||"—"} · {u?.region||"—"}</div>
                 </div>
-              ))}
-            </div>
-          )}
+                {canEdit&&seminar.status!=="completed"&&(
+                  <div style={{display:"flex",gap:8,alignItems:"center",fontSize:12}}>
+                    <label style={{display:"flex",gap:4,alignItems:"center",color:"var(--text-second)",cursor:"pointer"}}>
+                      <input type="checkbox" checked={e.attended} onChange={ev=>updateEnrollment(e.userId,{attended:ev.target.checked})} />
+                      Attended
+                    </label>
+                    <label style={{display:"flex",gap:4,alignItems:"center",color:"var(--text-second)",cursor:"pointer"}}>
+                      <input type="checkbox" checked={e.graduated} onChange={ev=>updateEnrollment(e.userId,{graduated:ev.target.checked})} />
+                      Graduated
+                    </label>
+                    <label style={{display:"flex",gap:4,alignItems:"center",color:"var(--text-second)",cursor:"pointer"}}>
+                      <input type="checkbox" checked={e.diplomaVerified} onChange={ev=>updateEnrollment(e.userId,{diplomaVerified:ev.target.checked})} />
+                      Diploma
+                    </label>
+                    <button onClick={()=>removeEnrollment(e.userId)} style={{...btnD,padding:"3px 8px",fontSize:11}}>✕</button>
+                  </div>
+                )}
+                {(seminar.status==="completed"||!canEdit)&&(
+                  <div style={{display:"flex",gap:6}}>
+                    {e.attended&&<Badge label="Attended" color="#60a5fa" />}
+                    {e.graduated&&<Badge label="Graduated" color="#4ade80" />}
+                    {e.diplomaVerified&&<Badge label="Diploma ✓" color="#f97316" />}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {canEdit&&seminar.status==="upcoming"&&(
+        <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid var(--border)",display:"flex",gap:10}}>
+          <button style={{...btnP,background:"#16a34a"}} onClick={()=>onComplete(seminar)}>
+            ✓ Complete Seminar &amp; Graduate Attendees
+          </button>
+          <button style={{...btnS}} onClick={onClose}>Close</button>
         </div>
       )}
     </Modal>
   );
 }
 
-export default function App() {
-  const [users,        setUsers]       = useState(seedUsers);
-  const [matches,      setMatchesRaw]  = useState(seedMatches);
-  const [seminars,     setSeminars]    = useState(seedSeminars);
-  const [applications, setApplications]= useState([]);
-  const [currentUser,  setCurrentUser] = useState(null);
-  const [page,         setPage]        = useState("dashboard");
-  const [regions,      setRegions]     = useState(DEFAULT_REGIONS);
-  const [menuOpen,     setMenuOpen]    = useState(false);
-  const [theme,        setTheme]       = useState("dark");
-  const T = THEMES[theme];
+// ─────────────────────────────────────────────────────────────────────────────
+// APP
+// ─────────────────────────────────────────────────────────────────────────────
 
+export default function App() {
+  const [users,       setUsers]       = useState(seedUsers);
+  const [matchesRaw,  setMatchesRaw]  = useState(seedMatches);
+  const [seminars,    setSeminars]    = useState(seedSeminars);
+  const [applications,setApplications]= useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [page,        setPage]        = useState("dashboard");
+  const [regions,     setRegions]     = useState(DEFAULT_REGIONS);
+  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [theme,       setTheme]       = useState("dark");
+
+  // Intercept setMatches to distribute points when a match is completed
   function setMatches(updater) {
-    setMatchesRaw(prev=>{
-      const next=typeof updater==="function"?updater(prev):updater;
-      next.forEach(m=>{
+    setMatchesRaw(prev => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      // Find newly completed matches that need point distribution
+      next.forEach(m => {
         if (m._pointsToDistribute) {
-          m.assignments.forEach(a=>{
-            setUsers(u=>u.map(r=>r.id===a.roId?{...r,points:r.points+a.pointsAwarded}:r));
-          });
+          setUsers(u => u.map(user => {
+            const assignment = m.assignments.find(a => a.roId === user.id);
+            if (!assignment) return user;
+            return { ...user, points: user.points + assignment.pointsAwarded };
+          }));
+          // Clear the flag
+          m._pointsToDistribute = false;
         }
       });
-      return next.map(m=>{const c={...m};delete c._pointsToDistribute;return c;});
+      return next;
     });
   }
 
-  function login(user)  { setCurrentUser(user); setPage("dashboard"); }
-  function logout()     { setCurrentUser(null);  setPage("dashboard"); }
+  function login(user)  { setCurrentUser(user); setPage("dashboard"); setMenuOpen(false); }
+  function logout()     { setCurrentUser(null); setPage("dashboard"); setMenuOpen(false); }
 
+  const pendingApps = applications.filter(a=>a.status==="pending");
   const admin    = currentUser && isAdmin(currentUser);
   const canMatch = currentUser && canManageMatches(currentUser);
 
-  // Pending applications visible to the current reviewer
-  const pendingApps = applications.filter(a => a.status === "pending").length;
-
-  const NAV = [
-    { id:"dashboard", label:"Dashboard",      icon:"◉"  },
-    { id:"ros",       label:"Range Officers",  icon:"👥" },
-    { id:"matches",   label:"Matches",         icon:"🎯" },
-    { id:"seminars",  label:"Seminars",        icon:"🎓" },
-    { id:"points",    label:"Points Ledger",   icon:"📊" },
-    ...(admin ? [{ id:"users", label:"User Database", icon:"🛡️", badge: pendingApps }] : []),
-    ...(canMatch && !admin ? [{ id:"users", label:"Applications", icon:"📋", badge: pendingApps }] : []),
-    ...(currentUser ? [{ id:"profile", label:"My Profile", icon:"👤" }] : []),
-  ];
+  const T = THEMES[theme];
 
   const cssVars = `
     :root {
@@ -3138,11 +3029,23 @@ export default function App() {
       --scroll-bg: ${T.scrollBg}; --scroll-thumb: ${T.scrollThumb};
     }
   `;
+
+  const NAV = [
+    { id:"dashboard", label:"Dashboard",      icon:"📊", show:true },
+    { id:"ro",        label:"Range Officers", icon:"👥", show:true },
+    { id:"matches",   label:"Matches",        icon:"🎯", show:true },
+    { id:"seminars",  label:"Seminars",       icon:"🎓", show:true },
+    { id:"points",    label:"Points Ledger",  icon:"📈", show:true },
+    { id:"users",     label:"User Database",  icon:"🛡️", show:canMatch, badge:pendingApps.length>0?pendingApps.length:null },
+    { id:"profile",   label:"My Profile",     icon:"👤", show:true },
+  ].filter(n=>n.show);
+
   if (!currentUser) {
     return (
       <ThemeCtx.Provider value={theme}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:var(--bg);}select option{background:${T.selectOption};}${cssVars}`}</style>
         <AuthCtx.Provider value={{ currentUser, setCurrentUser }}>
+          <style>{cssVars}</style>
+          <style>{`body{margin:0;background:var(--bg);color:var(--text-primary);font-family:'Inter','Segoe UI',sans-serif;}*{box-sizing:border-box;}input,select,textarea{background:var(--inp-bg);border-color:var(--inp-border);color:var(--inp-text);}select option{background:var(--surface);color:var(--inp-text);}::-webkit-scrollbar{width:6px;background:var(--scroll-bg);}::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:3px;}`}</style>
           <AuthScreen users={users} setUsers={setUsers} onLogin={login} regions={regions} />
         </AuthCtx.Provider>
       </ThemeCtx.Provider>
@@ -3151,146 +3054,99 @@ export default function App() {
 
   return (
     <ThemeCtx.Provider value={theme}>
-    <AuthCtx.Provider value={{ currentUser, setCurrentUser }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-        *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; background: var(--bg); color: var(--text-primary); font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; background: var(--scroll-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
-        select option { background: ${T.selectOption}; color: var(--inp-text); }
-        ${cssVars}
+      <AuthCtx.Provider value={{ currentUser, setCurrentUser }}>
+        <style>{cssVars}</style>
+        <style>{`
+          body{margin:0;background:var(--bg);color:var(--text-primary);font-family:'Inter','Segoe UI',sans-serif;}
+          *{box-sizing:border-box;}
+          input,select,textarea{background:var(--inp-bg);border-color:var(--inp-border);color:var(--inp-text);}
+          select option{background:var(--surface);color:var(--inp-text);}
+          ::-webkit-scrollbar{width:6px;background:var(--scroll-bg);}
+          ::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:3px;}
+          .ro-sidebar{display:flex;transition:transform 0.2s;}
+          @media(max-width:700px){
+            .ro-sidebar{transform:translateX(-100%);}
+            .ro-sidebar.open{transform:translateX(0);}
+          }
+        `}</style>
 
-        /* ── Desktop: sidebar visible, no mobile chrome ── */
-        .ro-sidebar   { display: flex; }
-        .ro-topbar    { display: none; }
-        .ro-main      { margin-left: 228px; padding: 32px 40px; }
-        .ro-backdrop  { display: none; }
+        <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
 
-        /* ── Mobile (≤ 700px) ── */
-        @media (max-width: 700px) {
-          .ro-sidebar  { transform: translateX(-100%); transition: transform 0.22s ease; }
-          .ro-sidebar.open { transform: translateX(0); }
-          .ro-topbar   { display: flex; }
-          .ro-main     { margin-left: 0; padding: 16px 14px 90px; }
-          .ro-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 90; }
-        }
-      `}</style>
-
-      {/* Mobile backdrop — closes drawer when tapped */}
-      {menuOpen && <div className="ro-backdrop" onClick={()=>setMenuOpen(false)} />}
-
-      <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
-
-        {/* ── Sidebar (desktop always, mobile as drawer) ── */}
-        <aside className={`ro-sidebar${menuOpen?" open":""}`} style={{
-          width:228, background:"var(--surface)", borderRight:"1px solid var(--border)",
-          flexDirection:"column", position:"fixed", top:0, left:0, bottom:0, zIndex:100
-        }}>
-          <div style={{padding:"22px 20px 18px",borderBottom:"1px solid var(--border)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:36,height:36,background:"#e85d2c",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎯</div>
-              <div style={{flex:1}}>
-                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,color:"var(--text-primary)",letterSpacing:"0.06em"}}>IPSC</div>
-                <div style={{fontSize:10,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.1em"}}>RO Manager</div>
-              </div>
-              {/* Close button — only meaningful on mobile */}
-              <button onClick={()=>setMenuOpen(false)} style={{
-                background:"none",border:"none",color:"var(--text-muted)",fontSize:20,cursor:"pointer",
-                lineHeight:1,padding:"2px 4px",display:"block"
-              }}>×</button>
-            </div>
-          </div>
-          <nav style={{flex:1,padding:"14px 10px",overflowY:"auto"}}>
-            {NAV.map(n=>(
-              <button key={n.id} onClick={()=>{ setPage(n.id); setMenuOpen(false); }} style={{
-                display:"flex",alignItems:"center",gap:10,width:"100%",padding:"9px 12px",
-                background:page===n.id?"#e85d2c18":"transparent",
-                border:page===n.id?"1px solid #e85d2c33":"1px solid transparent",
-                borderRadius:8,cursor:"pointer",marginBottom:3,textAlign:"left"
-              }}>
-                <span style={{fontSize:14}}>{n.icon}</span>
-                <span style={{fontSize:14,fontWeight:600,color:page===n.id?"#e85d2c":"var(--text-muted)",flex:1}}>{n.label}</span>
-                {n.badge > 0 && (
-                  <span style={{
-                    background:"#e85d2c", color:"#fff", borderRadius:10,
-                    fontSize:10, fontWeight:800, padding:"1px 6px", minWidth:18, textAlign:"center"
-                  }}>{n.badge}</span>
-                )}
-              </button>
-            ))}
-          </nav>
-          {/* User panel */}
-          <div style={{padding:"14px 16px",borderTop:"1px solid var(--border)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-              <div style={{width:32,height:32,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:"#fff",flexShrink:0}}>{currentUser.name.charAt(0)}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:13,fontWeight:600,color:"var(--text-primary)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{currentUser.name}</div>
-                <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>
-                  <Badge label={currentUser.role} color={roleColor(currentUser.role)} />
-                  {currentUser.certification&&currentUser.certification!=="None"&&<Badge label={currentUser.certification} color={certColor(currentUser.certification)} />}
+          {/* ── Sidebar (desktop always, mobile as drawer) ── */}
+          <aside className={`ro-sidebar${menuOpen?" open":""}`} style={{
+            width:228, background:"var(--surface)", borderRight:"1px solid var(--border)",
+            flexDirection:"column", position:"fixed", top:0, left:0, bottom:0, zIndex:100
+          }}>
+            {/* Logo */}
+            <div style={{padding:"18px 20px 14px",borderBottom:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:36,height:36,borderRadius:8,background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎯</div>
+                <div>
+                  <div style={{fontWeight:800,fontSize:15,color:"var(--text-primary)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em"}}>IPSC</div>
+                  <div style={{fontSize:10,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>RO Manager</div>
                 </div>
               </div>
+              <button onClick={()=>setMenuOpen(false)} style={{background:"none",border:"none",color:"var(--text-muted)",cursor:"pointer",fontSize:18,display:"none"}} className="mobile-close">×</button>
             </div>
-            {/* Theme toggle */}
-            <button
-              onClick={()=>setTheme(t=>t==="dark"?"light":"dark")}
-              title={theme==="dark"?"Switch to light mode":"Switch to dark mode"}
-              style={{
-                width:"100%", marginBottom:8,
-                background:"var(--surface2)", border:"1px solid var(--border2)",
-                borderRadius:6, color:"var(--text-second)", padding:"7px", fontSize:12,
-                cursor:"pointer", fontWeight:600, display:"flex", alignItems:"center",
-                justifyContent:"center", gap:6
-              }}
-            >
-              {theme==="dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
-            </button>
-            <button onClick={logout} style={{width:"100%",background:"var(--surface2)",border:"1px solid var(--border2)",borderRadius:6,color:"var(--text-muted)",padding:"7px",fontSize:12,cursor:"pointer",fontWeight:600}}>Sign Out</button>
+
+            {/* Nav */}
+            <nav style={{flex:1,overflowY:"auto",padding:"10px 0"}}>
+              {NAV.map(n=>(
+                <button key={n.id} onClick={()=>{ setPage(n.id); setMenuOpen(false); }} style={{
+                  display:"flex",alignItems:"center",gap:10,width:"100%",padding:"10px 16px",
+                  background:page===n.id?"#e85d2c22":"none",
+                  border:page===n.id?"1px solid #e85d2c44":"1px solid transparent",
+                  borderRadius:6,margin:"1px 8px",width:"calc(100% - 16px)",
+                  color:page===n.id?"#e85d2c":"var(--text-muted)",cursor:"pointer",fontSize:14,fontWeight:page===n.id?700:400,
+                  textAlign:"left"
+                }}>
+                  <span style={{fontSize:16}}>{n.icon}</span>
+                  <span style={{flex:1}}>{n.label}</span>
+                  {n.badge && <span style={{background:"#e85d2c",color:"#fff",borderRadius:10,fontSize:10,fontWeight:800,padding:"1px 6px"}}>{n.badge}</span>}
+                </button>
+              ))}
+            </nav>
+
+            {/* User footer */}
+            <div style={{padding:"12px 14px",borderTop:"1px solid var(--border)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                <div style={{width:36,height:36,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:800,color:"#fff",flexShrink:0}}>{currentUser.name.charAt(0)}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:600,fontSize:13,color:"var(--text-primary)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{currentUser.name}</div>
+                  <div style={{display:"flex",gap:4,marginTop:2,flexWrap:"wrap"}}>
+                    <Badge label={currentUser.role.toUpperCase()} color={roleColor(currentUser.role)} />
+                    {currentUser.certification!=="None"&&<Badge label={currentUser.certification} color={certColor(currentUser.certification)} />}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={()=>setTheme(t=>t==="dark"?"light":"dark")}
+                style={{width:"100%",marginBottom:8,background:"var(--surface2)",border:"1px solid var(--border2)",borderRadius:6,color:"var(--text-muted)",padding:"7px",fontSize:12,cursor:"pointer",fontWeight:600}}
+              >{theme==="dark"?"🌙 Dark Mode":"☀️ Light Mode"}</button>
+              <button onClick={logout} style={{width:"100%",background:"var(--surface2)",border:"1px solid var(--border2)",borderRadius:6,color:"var(--text-muted)",padding:"7px",fontSize:12,cursor:"pointer",fontWeight:600}}>Sign Out</button>
+            </div>
+          </aside>
+
+          {/* Mobile top bar */}
+          <div style={{display:"none",position:"fixed",top:0,left:0,right:0,height:52,background:"var(--surface)",borderBottom:"1px solid var(--border)",zIndex:99,alignItems:"center",padding:"0 14px",gap:12}} className="mobile-topbar">
+            <button onClick={()=>setMenuOpen(o=>!o)} style={{background:"none",border:"none",color:"var(--text-primary)",fontSize:22,cursor:"pointer",padding:4}}>☰</button>
+            <div style={{fontWeight:800,fontSize:16,color:"var(--text-primary)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.06em"}}>IPSC RO</div>
+            <div style={{flex:1}} />
+            <button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{background:"none",border:"none",fontSize:18,cursor:"pointer"}}>{theme==="dark"?"🌙":"☀️"}</button>
           </div>
-        </aside>
 
-        {/* ── Main content ── */}
-        <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:"100vh"}}>
-
-          {/* Mobile top bar — hidden on desktop */}
-          <header className="ro-topbar" style={{
-            position:"sticky",top:0,zIndex:80,
-            background:"var(--surface)",borderBottom:"1px solid var(--border)",
-            alignItems:"center",justifyContent:"space-between",
-            padding:"12px 16px",gap:10
-          }}>
-            <button onClick={()=>setMenuOpen(true)} style={{
-              background:"var(--surface2)",border:"1px solid var(--border2)",borderRadius:7,
-              color:"var(--text-primary)",padding:"7px 11px",fontSize:15,cursor:"pointer",lineHeight:1,flexShrink:0
-            }}>☰</button>
-            <div style={{display:"flex",alignItems:"center",gap:8,flex:1,minWidth:0}}>
-              <div style={{width:24,height:24,background:"#e85d2c",borderRadius:5,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0}}>🎯</div>
-              <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:800,color:"var(--text-primary)",letterSpacing:"0.05em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-                {NAV.find(n=>n.id===page)?.label || "IPSC RO Manager"}
-              </span>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-              <button onClick={()=>setTheme(t=>t==="dark"?"light":"dark")} style={{background:"none",border:"none",cursor:"pointer",fontSize:18,padding:"2px 4px"}} title="Toggle theme">
-                {theme==="dark"?"☀️":"🌙"}
-              </button>
-              <div style={{width:28,height:28,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:"#fff"}}>{currentUser.name.charAt(0)}</div>
-            </div>
-          </header>
-
-          <main className="ro-main" style={{flex:1,background:"var(--bg)"}}>
-            {page==="dashboard"&&<Dashboard users={users} matches={matches} seminars={seminars} />}
-            {page==="ros"      &&<ROPage users={users} matches={matches} regions={regions} />}
-            {page==="matches"  &&<MatchesPage users={users} matches={matches} setMatches={setMatches} regions={regions} />}
-            {page==="seminars" &&<SeminarsPage users={users} setUsers={setUsers} seminars={seminars} setSeminars={setSeminars} />}
-            {page==="points"   &&<PointsPage users={users} setUsers={setUsers} matches={matches} />}
-            {page==="users"    &&canMatch&&<UserDatabase users={users} setUsers={setUsers} regions={regions} setRegions={setRegions} applications={applications} setApplications={setApplications} />}
-            {page==="profile"  &&currentUser&&<MyProfile users={users} setUsers={setUsers} matches={matches} seminars={seminars} regions={regions} applications={applications} setApplications={setApplications} />}
+          {/* Main content */}
+          <main style={{marginLeft:228,flex:1,minHeight:"100vh",background:"var(--bg)"}}>
+            {page==="dashboard" && <Dashboard users={users} matches={matchesRaw} seminars={seminars} />}
+            {page==="ro"        && <ROPage users={users} matches={matchesRaw} regions={regions} />}
+            {page==="matches"   && <MatchesPage users={users} matches={matchesRaw} setMatches={setMatches} regions={regions} />}
+            {page==="seminars"  && <SeminarsPage users={users} setUsers={setUsers} seminars={seminars} setSeminars={setSeminars} />}
+            {page==="points"    && <PointsPage users={users} setUsers={setUsers} matches={matchesRaw} />}
+            {page==="users"     && canMatch && <UserDatabase users={users} setUsers={setUsers} regions={regions} setRegions={setRegions} applications={applications} setApplications={setApplications} />}
+            {page==="profile"   && <MyProfile users={users} setUsers={setUsers} matches={matchesRaw} seminars={seminars} regions={regions} applications={applications} setApplications={setApplications} />}
           </main>
         </div>
-
-      </div>
-    </AuthCtx.Provider>
+      </AuthCtx.Provider>
     </ThemeCtx.Provider>
   );
 }
