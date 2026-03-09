@@ -451,7 +451,7 @@ const THEMES = {
 function uid() { return "u" + Math.random().toString(36).slice(2, 9); }
 
 function certColor(c) {
-  return { "RO-P":"#86efac", RO:"#4ade80", CRO:"#facc15", RM:"#f97316", MD:"#e85d2c", Admin:"#c084fc", "MD/RM":"#fb923c", None:"#475569" }[c] || "#9ca3af";
+  return { "RO-P":"#86efac", RO:"#4ade80", CRO:"#facc15", RM:"#f97316", MD:"#e85d2c", Admin:"#c084fc", "MD/RM":"#fb923c", None:"var(--text-faint)" }[c] || "#9ca3af";
 }
 function roleColor(r) {
   return { admin:"#c084fc", rm:"#f97316", member:"#60a5fa" }[r] || "#9ca3af";
@@ -482,31 +482,29 @@ function Badge({ label, color }) {
 }
 
 function StatCard({ label, value, sub, accent }) {
-  const T = THEMES[useTheme()];
   return (
-    <div style={{ background:T.surface2, border:`1px solid ${T.border}`, borderRadius:8, padding:"18px 22px", minWidth:120, flex:1 }}>
-      <div style={{ fontSize:28, fontWeight:800, color:accent||T.textPrimary, fontFamily:"'Barlow Condensed',sans-serif" }}>{value}</div>
-      <div style={{ fontSize:12, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.07em", marginTop:2 }}>{label}</div>
-      {sub && <div style={{ fontSize:11, color:T.textFaint, marginTop:4 }}>{sub}</div>}
+    <div style={{ background:"var(--surface2)", border:"1px solid var(--border)", borderRadius:8, padding:"18px 22px", minWidth:120, flex:1 }}>
+      <div style={{ fontSize:28, fontWeight:800, color:accent||"var(--text-primary)", fontFamily:"'Barlow Condensed',sans-serif" }}>{value}</div>
+      <div style={{ fontSize:12, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.07em", marginTop:2 }}>{label}</div>
+      {sub && <div style={{ fontSize:11, color:"var(--text-faint)", marginTop:4 }}>{sub}</div>}
     </div>
   );
 }
 
 function Modal({ title, onClose, children, wide }) {
-  const T = THEMES[useTheme()];
   return (
     <div style={{
-      position:"fixed", inset:0, background:T.backdrop, zIndex:1000,
+      position:"fixed", inset:0, background:"var(--backdrop)", zIndex:1000,
       display:"flex", alignItems:"center", justifyContent:"center", padding:20
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
-        background:T.surface, border:`1px solid ${T.border}`, borderRadius:12,
+        background:"var(--surface)", border:"1px solid var(--border)", borderRadius:12,
         width:"100%", maxWidth:wide?820:640, maxHeight:"91vh", overflowY:"auto",
-        boxShadow:T.shadowLg
+        boxShadow:"var(--shadow-lg)"
       }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 26px", borderBottom:`1px solid ${T.border}` }}>
-          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:T.textPrimary, fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.04em" }}>{title}</h2>
-          <button onClick={onClose} style={{ background:"none", border:"none", color:T.textMuted, cursor:"pointer", fontSize:22, lineHeight:1 }}>×</button>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 26px", borderBottom:"1px solid var(--border)" }}>
+          <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:"var(--text-primary)", fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:"0.04em" }}>{title}</h2>
+          <button onClick={onClose} style={{ background:"none", border:"none", color:"var(--text-muted)", cursor:"pointer", fontSize:22, lineHeight:1 }}>×</button>
         </div>
         <div style={{ padding:"26px" }}>{children}</div>
       </div>
@@ -515,33 +513,30 @@ function Modal({ title, onClose, children, wide }) {
 }
 
 function Field({ label, children, hint }) {
-  const T = THEMES[useTheme()];
   return (
     <div style={{ marginBottom:16 }}>
-      <label style={{ display:"block", fontSize:11, fontWeight:600, color:T.textMuted, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{label}</label>
+      <label style={{ display:"block", fontSize:11, fontWeight:600, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{label}</label>
       {children}
-      {hint && <div style={{ fontSize:11, color:T.textFaint, marginTop:4 }}>{hint}</div>}
+      {hint && <div style={{ fontSize:11, color:"var(--text-faint)", marginTop:4 }}>{hint}</div>}
     </div>
   );
 }
 
 function InfoRow({ label, value }) {
-  const T = THEMES[useTheme()];
   return (
-    <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:`1px solid ${T.surface3}`, fontSize:13 }}>
-      <span style={{ color:T.textFaint }}>{label}</span>
-      <span style={{ color:T.textSecond, fontWeight:500 }}>{value}</span>
+    <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:"1px solid var(--surface3)", fontSize:13 }}>
+      <span style={{ color:"var(--text-faint)" }}>{label}</span>
+      <span style={{ color:"var(--text-second)", fontWeight:500 }}>{value}</span>
     </div>
   );
 }
 
 function Divider({ label }) {
-  const T = THEMES[useTheme()];
   return (
     <div style={{ display:"flex", alignItems:"center", gap:12, margin:"20px 0" }}>
-      <div style={{ flex:1, height:1, background:T.border }} />
-      {label && <span style={{ color:T.textFaint, fontSize:11, textTransform:"uppercase", letterSpacing:"0.09em" }}>{label}</span>}
-      <div style={{ flex:1, height:1, background:T.border }} />
+      <div style={{ flex:1, height:1, background:"var(--border)" }} />
+      {label && <span style={{ color:"var(--text-faint)", fontSize:11, textTransform:"uppercase", letterSpacing:"0.09em" }}>{label}</span>}
+      <div style={{ flex:1, height:1, background:"var(--border)" }} />
     </div>
   );
 }
@@ -599,7 +594,7 @@ function RegionSelect({ value, onChange, regions, placeholder = "— Select dist
 const inp  = { width:"100%", boxSizing:"border-box", background:"var(--inp-bg)", border:"1px solid var(--inp-border)", borderRadius:6, padding:"9px 12px", color:"var(--inp-text)", fontSize:14, outline:"none", fontFamily:"inherit" };
 const btnS = { background:"var(--surface2)", border:"1px solid var(--border2)", borderRadius:6, color:"var(--text-second)", padding:"10px 20px", fontSize:14, fontWeight:600, cursor:"pointer" };
 const btnP = { background:"#e85d2c", border:"none", borderRadius:6, color:"#fff", padding:"10px 20px", fontSize:14, fontWeight:700, cursor:"pointer", letterSpacing:"0.04em" };
-const btnD = { background:"#2a1515", border:"1px solid #4a2020", borderRadius:6, color:"#f87171", padding:"10px 20px", fontSize:14, fontWeight:600, cursor:"pointer" };
+const btnD = { background:"var(--surface2)", border:"1px solid #f8717144", borderRadius:6, color:"#f87171", padding:"10px 20px", fontSize:14, fontWeight:600, cursor:"pointer" };
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -667,21 +662,21 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
           paddingRight:10, userSelect:"none"
         }}
       >
-        <span style={{ color: selected ? "#e2e8f0" : "#475569", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
+        <span style={{ color: selected ? "var(--text-primary)" : "var(--text-faint)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>
           {selected ? label(selected) : placeholder}
         </span>
-        <span style={{ color:"#475569", fontSize:11, flexShrink:0 }}>{open ? "▲" : "▼"}</span>
+        <span style={{ color:"var(--text-faint)", fontSize:11, flexShrink:0 }}>{open ? "▲" : "▼"}</span>
       </button>
 
       {/* Dropdown */}
       {open && (
         <div style={{
           position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:500,
-          background:"#0d1117", border:"1px solid #2a3441", borderRadius:8,
+          background:"var(--surface)", border:"1px solid var(--border2)", borderRadius:8,
           boxShadow:"0 12px 40px rgba(0,0,0,0.7)", overflow:"hidden"
         }}>
           {/* Search input */}
-          <div style={{ padding:"8px 10px", borderBottom:"1px solid #1e2530" }}>
+          <div style={{ padding:"8px 10px", borderBottom:"1px solid var(--border)" }}>
             <input
               ref={inputRef}
               style={{ ...inp, padding:"7px 10px", fontSize:13 }}
@@ -698,13 +693,13 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
               onClick={() => select("")}
               style={{
                 padding:"9px 14px", cursor:"pointer", fontSize:13,
-                color: !value ? "#e85d2c" : "#475569",
-                background: !value ? "#1a0e08" : "transparent",
-                borderBottom:"1px solid #1e2530"
+                color: !value ? "#e85d2c" : "var(--text-faint)",
+                background: !value ? "var(--surface3)" : "transparent",
+                borderBottom:"1px solid var(--border)"
               }}
             >{placeholder}</div>
             {filtered.length === 0 && (
-              <div style={{ padding:"12px 14px", color:"#475569", fontSize:13 }}>No results for "{query}"</div>
+              <div style={{ padding:"12px 14px", color:"var(--text-faint)", fontSize:13 }}>No results for "{query}"</div>
             )}
             {filtered.map(u => (
               <div
@@ -712,9 +707,9 @@ function UserPicker({ users, value, onChange, placeholder = "— Select user —
                 onClick={() => select(u.id)}
                 style={{
                   padding:"9px 14px", cursor:"pointer", fontSize:13,
-                  color: u.id === value ? "#e85d2c" : "#e2e8f0",
-                  background: u.id === value ? "#1a0e08" : "transparent",
-                  borderBottom:"1px solid #131922",
+                  color: u.id === value ? "#e85d2c" : "var(--text-primary)",
+                  background: u.id === value ? "var(--surface3)" : "transparent",
+                  borderBottom:"1px solid var(--surface3)",
                   transition:"background 0.1s"
                 }}
                 onMouseEnter={e => { if (u.id !== value) e.currentTarget.style.background = "#141a24"; }}
@@ -767,28 +762,28 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:"#080c10", display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"Inter,sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"Inter,sans-serif" }}>
       <div style={{ position:"fixed", top:"-15%", right:"-8%", width:480, height:480, borderRadius:"50%", background:"radial-gradient(circle,#e85d2c16 0%,transparent 70%)", pointerEvents:"none" }} />
       <div style={{ position:"fixed", bottom:"-15%", left:"-8%", width:380, height:380, borderRadius:"50%", background:"radial-gradient(circle,#60a5fa0d 0%,transparent 70%)", pointerEvents:"none" }} />
       <div style={{ width:"100%", maxWidth:430 }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
           <div style={{ width:60, height:60, background:"#e85d2c", borderRadius:16, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:30, marginBottom:18 }}>🎯</div>
-          <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:30, fontWeight:800, color:"#e2e8f0", letterSpacing:"0.05em" }}>IPSC RO Manager</div>
-          <div style={{ fontSize:13, color:"#475569", marginTop:4 }}>Range Officer Management System</div>
+          <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:30, fontWeight:800, color:"var(--text-primary)", letterSpacing:"0.05em" }}>IPSC RO Manager</div>
+          <div style={{ fontSize:13, color:"var(--text-faint)", marginTop:4 }}>Range Officer Management System</div>
         </div>
 
-        <div style={{ background:"#0d1117", border:"1px solid #1e2530", borderRadius:14, padding:34, boxShadow:"0 24px 70px rgba(0,0,0,0.65)" }}>
+        <div style={{ background:"var(--surface)", border:"1px solid var(--border)", borderRadius:14, padding:34, boxShadow:"0 24px 70px rgba(0,0,0,0.65)" }}>
           {/* Tab */}
-          <div style={{ display:"flex", background:"#111418", borderRadius:9, padding:4, marginBottom:28 }}>
+          <div style={{ display:"flex", background:"var(--surface2)", borderRadius:9, padding:4, marginBottom:28 }}>
             {["login","register"].map(m => (
               <button key={m} onClick={() => { setMode(m); setError(""); }} style={{
                 flex:1, padding:"9px", border:"none", borderRadius:6, cursor:"pointer", fontSize:14, fontWeight:600,
-                background:mode===m?"#e85d2c":"transparent", color:mode===m?"#fff":"#64748b", transition:"all 0.15s"
+                background:mode===m?"#e85d2c":"transparent", color:mode===m?"#fff":"var(--text-muted)", transition:"all 0.15s"
               }}>{m==="login"?"Sign In":"Register"}</button>
             ))}
           </div>
 
-          {error && <div style={{ background:"#2a1515", border:"1px solid #4a2020", borderRadius:7, padding:"10px 14px", color:"#f87171", fontSize:13, marginBottom:18 }}>{error}</div>}
+          {error && <div style={{ background:"#f8717115", border:"1px solid #f8717155", borderRadius:7, padding:"10px 14px", color:"#f87171", fontSize:13, marginBottom:18 }}>{error}</div>}
 
           {mode === "login" ? (
             <>
@@ -804,7 +799,7 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
                 ].map(d => (
                   <button key={d.email} onClick={() => { setForm(p=>({...p,email:d.email,password:d.pass})); setError(""); }}
                     style={{...btnS,padding:"8px 14px",fontSize:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{color:"#94a3b8"}}>{d.label}: {d.email} / {d.pass}</span>
+                    <span style={{color:"var(--text-second)"}}>{d.label}: {d.email} / {d.pass}</span>
                     <Badge label={d.role} color={roleColor(d.role)} />
                   </button>
                 ))}
@@ -821,8 +816,8 @@ function AuthScreen({ users, setUsers, onLogin, regions }) {
                 <Field label="Password"><input style={inp} type="password" value={form.password} onChange={f("password")} placeholder="Min. 4 chars" /></Field>
                 <Field label="Confirm"><input style={inp} type="password" value={form.confirm} onChange={f("confirm")} placeholder="Repeat" onKeyDown={e=>e.key==="Enter"&&register()} /></Field>
               </div>
-              <div style={{ background:"#111418", border:"1px solid #1e2530", borderRadius:7, padding:"11px 14px", fontSize:12, color:"#475569", marginBottom:16 }}>
-                New accounts start as <Badge label="member" color="#60a5fa" /> with <Badge label="No Cert" color="#475569" />. An admin must grant your RO certification before you can be assigned to matches.
+              <div style={{ background:"var(--surface2)", border:"1px solid var(--border)", borderRadius:7, padding:"11px 14px", fontSize:12, color:"var(--text-faint)", marginBottom:16 }}>
+                New accounts start as <Badge label="member" color="#60a5fa" /> with <Badge label="No Cert" color="var(--text-faint)" />. An admin must grant your RO certification before you can be assigned to matches.
               </div>
               <button style={{...btnP,width:"100%",padding:"12px"}} onClick={register}>Create Account</button>
             </>
@@ -849,8 +844,8 @@ function Dashboard({ users, matches, seminars }) {
 
   return (
     <div>
-      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>Dashboard</h1>
-      <p style={{color:"#475569",marginBottom:28,fontSize:14}}>System-wide overview</p>
+      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Dashboard</h1>
+      <p style={{color:"var(--text-faint)",marginBottom:28,fontSize:14}}>System-wide overview</p>
       <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:28}}>
         <StatCard label="Registered Users"  value={users.length}    sub={`${activeUsers} active`}  accent="#4ade80" />
         <StatCard label="Certified ROs"     value={certifiedROs}    accent="#facc15" />
@@ -860,32 +855,32 @@ function Dashboard({ users, matches, seminars }) {
         <StatCard label="Total Points"      value={totalPoints}     accent="#e85d2c" />
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:20}}>
-        <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:20}}>
-          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Certification Breakdown</h3>
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
+          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Certification Breakdown</h3>
           {certBreakdown.map(({cert,count})=>(
             <div key={cert} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
               <Badge label={cert} color={certColor(cert)} />
-              <div style={{flex:1,background:"#1e2530",borderRadius:4,height:6,overflow:"hidden"}}>
+              <div style={{flex:1,background:"var(--border)",borderRadius:4,height:6,overflow:"hidden"}}>
                 <div style={{width:`${(count/(certifiedROs||1))*100}%`,background:certColor(cert),height:"100%",borderRadius:4}} />
               </div>
-              <span style={{color:"#94a3b8",fontSize:13,fontWeight:600,minWidth:20}}>{count}</span>
+              <span style={{color:"var(--text-second)",fontSize:13,fontWeight:600,minWidth:20}}>{count}</span>
             </div>
           ))}
         </div>
-        <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:20}}>
-          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points Leaderboard</h3>
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
+          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points Leaderboard</h3>
           {[...users].filter(u=>u.active).sort((a,b)=>b.points-a.points).slice(0,6).map((u,i)=>(
             <div key={u.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-              <span style={{fontSize:11,color:i<3?"#facc15":"#475569",fontWeight:700,minWidth:20}}>#{i+1}</span>
-              <span style={{flex:1,color:"#cbd5e1",fontSize:14}}>{u.name}</span>
+              <span style={{fontSize:11,color:i<3?"#facc15":"var(--text-faint)",fontWeight:700,minWidth:20}}>#{i+1}</span>
+              <span style={{flex:1,color:"var(--text-primary)",fontSize:14}}>{u.name}</span>
               <Badge label={u.certification||"None"} color={certColor(u.certification)} />
               <span style={{color:"#e85d2c",fontWeight:800,fontSize:15,fontFamily:"'Barlow Condensed',sans-serif",minWidth:28,textAlign:"right"}}>{u.points}</span>
             </div>
           ))}
         </div>
       </div>
-      <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:20}}>
-        <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Recent Matches</h3>
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
+        <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Recent Matches</h3>
         {recentMatches.map(m=>{
           const mdUser=users.find(u=>u.id===m.md);
           const rmUser=users.find(u=>u.id===m.rm);
@@ -893,14 +888,14 @@ function Dashboard({ users, matches, seminars }) {
             ? `MD/RM: ${mdUser?.name||"—"}`
             : `MD: ${mdUser?.name||"—"} · RM: ${rmUser?.name||"—"}`;
           return (
-            <div key={m.id} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:"1px solid #1a2030"}}>
+            <div key={m.id} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
               <Badge label={m.status} color={statusColor(m.status)} />
               <div style={{flex:1}}>
-                <div style={{color:"#e2e8f0",fontWeight:600,fontSize:14}}>{m.name}</div>
-                <div style={{color:"#475569",fontSize:12,marginTop:2}}>{fmtDate(m.date)} · {m.region} · {m.stages} stages · {staffStr}</div>
+                <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{m.name}</div>
+                <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>{fmtDate(m.date)} · {m.region} · {m.stages} stages · {staffStr}</div>
               </div>
               <Badge label={m.level} color="#7c8cf8" />
-              <span style={{color:"#64748b",fontSize:12}}>{m.assignments.length} ROs</span>
+              <span style={{color:"var(--text-muted)",fontSize:12}}>{m.assignments.length} ROs</span>
             </div>
           );
         })}
@@ -975,16 +970,16 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
 
   return (
     <div>
-      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>My Profile</h1>
-      <p style={{color:"#475569",marginBottom:28,fontSize:14}}>Your account, certifications and match history</p>
+      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>My Profile</h1>
+      <p style={{color:"var(--text-faint)",marginBottom:28,fontSize:14}}>Your account, certifications and match history</p>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
         {/* Left */}
         <div>
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24,marginBottom:16}}>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24,marginBottom:16}}>
             <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20}}>
               <div style={{width:54,height:54,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:800,color:"#fff",fontFamily:"'Barlow Condensed',sans-serif",flexShrink:0}}>{user.name.charAt(0)}</div>
               <div>
-                <div style={{fontSize:18,fontWeight:700,color:"#e2e8f0"}}>{user.name}</div>
+                <div style={{fontSize:18,fontWeight:700,color:"var(--text-primary)"}}>{user.name}</div>
                 <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
                   <Badge label={user.role}                  color={roleColor(user.role)} />
                   <Badge label={user.certification||"No Cert"} color={certColor(user.certification)} />
@@ -1002,7 +997,7 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
                 <InfoRow label="Joined"   value={fmtDate(user.joined)} />
                 <InfoRow label="IROA Member" value={
                   user.iroa?.member
-                    ? <span>Yes {user.iroa.since ? <span style={{color:"#475569",fontSize:12}}>since {fmtDate(user.iroa.since)}</span> : ""}</span>
+                    ? <span>Yes {user.iroa.since ? <span style={{color:"var(--text-faint)",fontSize:12}}>since {fmtDate(user.iroa.since)}</span> : ""}</span>
                     : "No"
                 } />
                 {user.notes&&<InfoRow label="Notes" value={user.notes}/>}
@@ -1016,16 +1011,16 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
                   <RegionSelect value={form.region} onChange={v=>setForm(f=>({...f,region:v}))} regions={regions} />
                 </Field>
                 <Field label="Notes">   <textarea style={{...inp,height:60,resize:"vertical"}} value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} /></Field>
-                <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:"1px solid #131922",marginBottom:12}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 0",borderBottom:"1px solid var(--surface3)",marginBottom:12}}>
                   <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",flex:1}}>
                     <input type="checkbox" checked={!!form.iroa?.member}
                       onChange={e=>setForm(f=>({...f,iroa:{...f.iroa,member:e.target.checked,since:e.target.checked?(f.iroa?.since||new Date().toISOString().slice(0,10)):null}}))}
                       style={{width:16,height:16,accentColor:"#e85d2c"}} />
-                    <span style={{fontSize:13,color:"#e2e8f0",fontWeight:600}}>IROA Member</span>
+                    <span style={{fontSize:13,color:"var(--text-primary)",fontWeight:600}}>IROA Member</span>
                   </label>
                   {form.iroa?.member && (
                     <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <label style={{fontSize:11,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.07em",whiteSpace:"nowrap"}}>Since</label>
+                      <label style={{fontSize:11,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.07em",whiteSpace:"nowrap"}}>Since</label>
                       <input type="date" style={{...inp,width:140,padding:"6px 10px",fontSize:12}}
                         value={form.iroa?.since||""}
                         onChange={e=>setForm(f=>({...f,iroa:{...f.iroa,since:e.target.value}}))} />
@@ -1039,9 +1034,9 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
               </>
             )}
           </div>
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24}}>
-            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Change Password</h3>
-            {pwError   && <div style={{background:"#2a1515",border:"1px solid #4a2020",borderRadius:6,padding:"9px 13px",color:"#f87171",fontSize:13,marginBottom:12}}>{pwError}</div>}
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24}}>
+            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Change Password</h3>
+            {pwError   && <div style={{background:"#f8717115",border:"1px solid #f8717155",borderRadius:6,padding:"9px 13px",color:"#f87171",fontSize:13,marginBottom:12}}>{pwError}</div>}
             {pwSuccess && <div style={{background:"#0a2a15",border:"1px solid #164a20",borderRadius:6,padding:"9px 13px",color:"#4ade80",fontSize:13,marginBottom:12}}>Password updated successfully.</div>}
             <Field label="Current Password"><input style={inp} type="password" value={pwForm.current} onChange={pf("current")} /></Field>
             <Field label="New Password">    <input style={inp} type="password" value={pwForm.next}    onChange={pf("next")} /></Field>
@@ -1051,20 +1046,20 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
         </div>
         {/* Right */}
         <div>
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24,marginBottom:16}}>
-            <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Certification History</h3>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24,marginBottom:16}}>
+            <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Certification History</h3>
             {(!user.certHistory||user.certHistory.length===0)
-              ? <p style={{color:"#475569",fontSize:13}}>No certifications on record yet. Contact an administrator.</p>
+              ? <p style={{color:"var(--text-faint)",fontSize:13}}>No certifications on record yet. Contact an administrator.</p>
               : [...user.certHistory].reverse().map((c,i,arr)=>(
                 <div key={i} style={{display:"flex",gap:12,paddingBottom:i<arr.length-1?14:0}}>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
                     <div style={{width:10,height:10,borderRadius:"50%",background:certColor(c.cert),flexShrink:0,marginTop:4}} />
-                    {i<arr.length-1&&<div style={{width:2,flex:1,background:"#1e2530",marginTop:4}}/>}
+                    {i<arr.length-1&&<div style={{width:2,flex:1,background:"var(--border)",marginTop:4}}/>}
                   </div>
                   <div style={{flex:1,paddingBottom:4}}>
-                    <div style={{display:"flex",gap:8,alignItems:"center"}}><Badge label={c.cert} color={certColor(c.cert)} /><span style={{color:"#64748b",fontSize:12}}>{fmtDate(c.date)}</span></div>
-                    <div style={{color:"#475569",fontSize:12,marginTop:4}}>Granted by: {c.grantedBy}</div>
-                    {c.note&&<div style={{color:"#64748b",fontSize:12,fontStyle:"italic",marginTop:2}}>{c.note}</div>}
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}><Badge label={c.cert} color={certColor(c.cert)} /><span style={{color:"var(--text-muted)",fontSize:12}}>{fmtDate(c.date)}</span></div>
+                    <div style={{color:"var(--text-faint)",fontSize:12,marginTop:4}}>Granted by: {c.grantedBy}</div>
+                    {c.note&&<div style={{color:"var(--text-muted)",fontSize:12,fontStyle:"italic",marginTop:2}}>{c.note}</div>}
                   </div>
                 </div>
               ))
@@ -1076,12 +1071,12 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
             const checklist = computeROChecklist(user);
             const allPass   = checklist.every(c=>c.pass);
             return (
-              <div style={{background:"#111418",border:`1px solid ${allPass?"#166534":"#1e2530"}`,borderRadius:8,padding:24,marginBottom:16}}>
+              <div style={{background:"var(--surface2)",border:`1px solid ${allPass?"#4ade8066":"var(--border)"}`,borderRadius:8,padding:24,marginBottom:16}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                  <h3 style={{margin:0,fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>RO Upgrade Checklist</h3>
+                  <h3 style={{margin:0,fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>RO Upgrade Checklist</h3>
                   {allPass && <Badge label="All Requirements Met" color="#4ade80" />}
                 </div>
-                <p style={{fontSize:12,color:"#475569",margin:"0 0 16px"}}>
+                <p style={{fontSize:12,color:"var(--text-faint)",margin:"0 0 16px"}}>
                   These checks must all pass before applying for a full <Badge label="RO" color="#4ade80" /> upgrade. If you believe a result is incorrect, contact NROI directly.
                 </p>
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20}}>
@@ -1089,20 +1084,20 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
                     <div key={item.key} style={{
                       display:"flex",alignItems:"flex-start",gap:12,
                       padding:"10px 12px",borderRadius:7,
-                      background:item.pass?"#0a1f0a":"#1a0e0e",
-                      border:`1px solid ${item.pass?"#166534":"#4a1010"}`
+                      background:item.pass?"#4ade8015":"#f8717115",
+                      border:`1px solid ${item.pass?"#4ade8066":"#f8717155"}`
                     }}>
                       <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{item.pass ? "✅" : "❌"}</span>
                       <div style={{flex:1}}>
                         <div style={{fontSize:13,fontWeight:600,color:item.pass?"#86efac":"#fca5a5"}}>{item.label}</div>
-                        <div style={{fontSize:11,color:"#475569",marginTop:2}}>{item.desc}</div>
-                        {item.detail&&<div style={{fontSize:11,color:"#64748b",marginTop:2,fontStyle:"italic"}}>{item.detail}</div>}
+                        <div style={{fontSize:11,color:"var(--text-faint)",marginTop:2}}>{item.desc}</div>
+                        {item.detail&&<div style={{fontSize:11,color:"var(--text-muted)",marginTop:2,fontStyle:"italic"}}>{item.detail}</div>}
                       </div>
                     </div>
                   ))}
                 </div>
                 {pendingTypes.has("RO") ? (
-                  <div style={{background:"#0a1422",border:"1px solid #1e3a5f",borderRadius:7,padding:"12px 14px",color:"#60a5fa",fontSize:13}}>
+                  <div style={{background:"#60a5fa15",border:"1px solid #60a5fa44",borderRadius:7,padding:"12px 14px",color:"#60a5fa",fontSize:13}}>
                     ⏳ RO upgrade application is pending review.
                   </div>
                 ) : allPass ? (
@@ -1123,13 +1118,13 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
 
           {/* My application history */}
           {myApplications.length > 0 && (
-            <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24,marginBottom:16}}>
-              <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>My Applications</h3>
+            <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24,marginBottom:16}}>
+              <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>My Applications</h3>
               {myApplications.map(app=>(
-                <div key={app.id} style={{padding:"11px 0",borderBottom:"1px solid #1a2030",display:"flex",gap:12,alignItems:"flex-start"}}>
+                <div key={app.id} style={{padding:"11px 0",borderBottom:"1px solid var(--border)",display:"flex",gap:12,alignItems:"flex-start"}}>
                   <div style={{flex:1}}>
                     <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-                      <span style={{fontWeight:600,color:"#e2e8f0",fontSize:13}}>
+                      <span style={{fontWeight:600,color:"var(--text-primary)",fontSize:13}}>
                         {app.type==="IROA" ? "IROA Membership" : `${app.type} Certification`}
                       </span>
                       <Badge
@@ -1137,10 +1132,10 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
                         color={app.status==="pending"?"#60a5fa":app.status==="approved"?"#4ade80":"#f87171"}
                       />
                     </div>
-                    <div style={{color:"#475569",fontSize:11,marginTop:3}}>Submitted {fmtDate(app.date)}</div>
-                    {app.note&&<div style={{color:"#64748b",fontSize:12,marginTop:3,fontStyle:"italic"}}>"{app.note}"</div>}
-                    {app.reviewNote&&<div style={{color:"#94a3b8",fontSize:12,marginTop:3}}>Review note: {app.reviewNote}</div>}
-                    {app.reviewedBy&&<div style={{color:"#475569",fontSize:11,marginTop:2}}>Reviewed by {app.reviewedBy} on {fmtDate(app.reviewedDate)}</div>}
+                    <div style={{color:"var(--text-faint)",fontSize:11,marginTop:3}}>Submitted {fmtDate(app.date)}</div>
+                    {app.note&&<div style={{color:"var(--text-muted)",fontSize:12,marginTop:3,fontStyle:"italic"}}>{app.note}</div>}
+                    {app.reviewNote&&<div style={{color:"var(--text-second)",fontSize:12,marginTop:3}}>Review note: {app.reviewNote}</div>}
+                    {app.reviewedBy&&<div style={{color:"var(--text-faint)",fontSize:11,marginTop:2}}>Reviewed by {app.reviewedBy} on {fmtDate(app.reviewedDate)}</div>}
                   </div>
                 </div>
               ))}
@@ -1148,36 +1143,36 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
           )}
 
           {/* Seminar History */}
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24,marginBottom:16}}>
-            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Seminar History</h3>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24,marginBottom:16}}>
+            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Seminar History</h3>
             {mySeminars.length===0
-              ? <p style={{color:"#475569",fontSize:13}}>No seminars on record.</p>
+              ? <p style={{color:"var(--text-faint)",fontSize:13}}>No seminars on record.</p>
               : mySeminars.map(s=>(
-                <div key={s.id} style={{padding:"10px 0",borderBottom:"1px solid #1a2030",display:"flex",gap:12,alignItems:"flex-start"}}>
+                <div key={s.id} style={{padding:"10px 0",borderBottom:"1px solid var(--border)",display:"flex",gap:12,alignItems:"flex-start"}}>
                   <div style={{flex:1}}>
-                    <div style={{color:"#e2e8f0",fontSize:13,fontWeight:600}}>{s.name}</div>
-                    <div style={{color:"#475569",fontSize:11,marginTop:3}}>{fmtDate(s.date)} {s.location?"· "+s.location:""}</div>
+                    <div style={{color:"var(--text-primary)",fontSize:13,fontWeight:600}}>{s.name}</div>
+                    <div style={{color:"var(--text-faint)",fontSize:11,marginTop:3}}>{fmtDate(s.date)} {s.location?"· "+s.location:""}</div>
                     <div style={{display:"flex",gap:6,marginTop:5,flexWrap:"wrap"}}>
                       <Badge label={s.type} color={s.type==="Level I"?"#38bdf8":"#a78bfa"} />
                       {s.enrollment.graduated&&<Badge label="Graduated" color="#4ade80" />}
                       {s.enrollment.diplomaVerified&&<Badge label="Diploma Verified" color="#38bdf8" />}
                     </div>
                   </div>
-                  {s.enrollment.diplomaDate&&<span style={{color:"#475569",fontSize:11,whiteSpace:"nowrap"}}>{fmtDate(s.enrollment.diplomaDate)}</span>}
+                  {s.enrollment.diplomaDate&&<span style={{color:"var(--text-faint)",fontSize:11,whiteSpace:"nowrap"}}>{fmtDate(s.enrollment.diplomaDate)}</span>}
                 </div>
               ))
             }
           </div>
 
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24}}>
-            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Match History</h3>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24}}>
+            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Match History</h3>
             {myMatches.length===0
-              ? <p style={{color:"#475569",fontSize:13}}>No match assignments yet.</p>
+              ? <p style={{color:"var(--text-faint)",fontSize:13}}>No match assignments yet.</p>
               : myMatches.map(m=>(
-                <div key={m.id} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 0",borderBottom:"1px solid #1a2030"}}>
+                <div key={m.id} style={{display:"flex",gap:12,alignItems:"center",padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
                   <div style={{flex:1}}>
-                    <div style={{color:"#e2e8f0",fontSize:14,fontWeight:500}}>{m.name}</div>
-                    <div style={{color:"#475569",fontSize:12,marginTop:2}}>{fmtDate(m.date)} · {m.region}</div>
+                    <div style={{color:"var(--text-primary)",fontSize:14,fontWeight:500}}>{m.name}</div>
+                    <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>{fmtDate(m.date)} · {m.region}</div>
                   </div>
                   <Badge label={m.assignment.role} color={certColor(m.assignment.role)} />
                   <span style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16}}>+{m.assignment.pointsAwarded}</span>
@@ -1238,31 +1233,31 @@ function CertApplicationPanel({ user, pendingTypes, submitApplication }) {
   if (visible.length === 0) return null;
 
   return (
-    <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24,marginBottom:16}}>
-      <h3 style={{margin:"0 0 6px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Apply for Upgrade</h3>
-      <p style={{fontSize:12,color:"#475569",margin:"0 0 16px"}}>Submit an application for a higher certification or IROA membership. Applications are reviewed by admins and RMs.</p>
+    <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24,marginBottom:16}}>
+      <h3 style={{margin:"0 0 6px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Apply for Upgrade</h3>
+      <p style={{fontSize:12,color:"var(--text-faint)",margin:"0 0 16px"}}>Submit an application for a higher certification or IROA membership. Applications are reviewed by admins and RMs.</p>
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {visible.map(opt => {
           const isPending  = pendingTypes.has(opt.type);
           const isExpanded = expanded === opt.type;
           return (
-            <div key={opt.type} style={{border:`1px solid ${isPending?"#1e3a5f":isExpanded?"#2a3441":"#1e2530"}`,borderRadius:8,overflow:"hidden"}}>
+            <div key={opt.type} style={{border:`1px solid ${isPending?"#60a5fa55":isExpanded?"var(--border2)":"var(--border)"}`,borderRadius:8,overflow:"hidden"}}>
               <div style={{
                 display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
                 background:isExpanded?"#0d1520":"transparent",cursor:isPending?"default":"pointer"
               }} onClick={()=>!isPending&&setExpanded(isExpanded?null:opt.type)}>
                 <Badge label={opt.type} color={opt.color} />
                 <div style={{flex:1}}>
-                  <div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{opt.label}</div>
-                  <div style={{fontSize:11,color:"#475569",marginTop:2}}>{opt.desc}</div>
+                  <div style={{fontSize:13,fontWeight:600,color:"var(--text-primary)"}}>{opt.label}</div>
+                  <div style={{fontSize:11,color:"var(--text-faint)",marginTop:2}}>{opt.desc}</div>
                 </div>
                 {isPending
                   ? <span style={{fontSize:11,color:"#60a5fa",whiteSpace:"nowrap"}}>⏳ Pending</span>
-                  : <span style={{color:"#475569",fontSize:14}}>{isExpanded?"▲":"▼"}</span>
+                  : <span style={{color:"var(--text-faint)",fontSize:14}}>{isExpanded?"▲":"▼"}</span>
                 }
               </div>
               {isExpanded && !isPending && (
-                <div style={{padding:"14px 16px",borderTop:"1px solid #1e2530",background:"#080c12"}}>
+                <div style={{padding:"14px 16px",borderTop:"1px solid var(--border)",background:"var(--surface)"}}>
                   <Field label="Supporting note (optional)" hint="Any context you want reviewers to see — match experience, seminar dates, etc.">
                     <textarea
                       style={{...inp,height:64,resize:"vertical"}}
@@ -1391,7 +1386,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
   const liveUser = id => users.find(u=>u.id===id);
   const tabBtn = t => ({
     padding:"8px 20px", fontSize:13, fontWeight:600, cursor:"pointer", border:"none", borderRadius:6,
-    background: tab===t ? "#e85d2c" : "transparent", color: tab===t ? "#fff" : "#64748b",
+    background: tab===t ? "#e85d2c" : "transparent", color: tab===t ? "#fff" : "var(--text-muted)",
     display:"flex", alignItems:"center", gap:6
   });
 
@@ -1399,17 +1394,17 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
         <div>
-          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>{adminAccess?"User Database":"Applications"}</h1>
-          <p style={{color:"#475569",margin:0,fontSize:14}}>
+          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>{adminAccess?"User Database":"Applications"}</h1>
+          <p style={{color:"var(--text-faint)",margin:0,fontSize:14}}>
             {tab==="users" ? `${filtered.length} of ${users.length} users`
-             : tab==="apps" ? `${pendingApps.length} pending application${pendingApps.length!==1?"s":""}`
+             : tab==="apps" ? `${pendingApps.length} pending application${pendingApps.length!==1?"s":""}` 
              : `${regions.length} districts configured`}
           </p>
         </div>
       </div>
 
       {/* Tab bar */}
-      <div style={{display:"flex",gap:4,marginBottom:24,background:"#0d1117",padding:4,borderRadius:8,width:"fit-content"}}>
+      <div style={{display:"flex",gap:4,marginBottom:24,background:"var(--surface)",padding:4,borderRadius:8,width:"fit-content"}}>
         {adminAccess&&<button style={tabBtn("users")}   onClick={()=>setTab("users")}>👥 Users</button>}
         <button style={tabBtn("apps")} onClick={()=>setTab("apps")}>
           📋 Applications
@@ -1435,29 +1430,29 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
             <option value="">— No district —</option>
           </select>
         </div>
-        <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,overflow:"hidden"}}>
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,overflow:"hidden"}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <thead>
-              <tr style={{background:"#0d1117"}}>
+              <tr style={{background:"var(--surface)"}}>
                 {["User","Email","Role","Certification","District","Points","Status","Actions"].map(h=>(
-                  <th key={h} style={{padding:"12px 13px",textAlign:"left",fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid #1e2530"}}>{h}</th>
+                  <th key={h} style={{padding:"12px 13px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid var(--border)"}}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((u,i)=>(
-                <tr key={u.id} style={{borderBottom:"1px solid #131922",background:i%2===0?"transparent":"#0a0e14"}}>
+                <tr key={u.id} style={{borderBottom:"1px solid var(--surface3)",background:i%2===0?"transparent":"var(--surface)"}}>
                   <td style={{padding:"11px 13px"}}>
                     <div style={{display:"flex",alignItems:"center",gap:9}}>
                       <div style={{width:30,height:30,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#fff",flexShrink:0}}>{u.name.charAt(0)}</div>
-                      <button onClick={()=>setViewUser(u)} style={{background:"none",border:"none",color:"#e2e8f0",fontWeight:600,fontSize:14,cursor:"pointer",padding:0}}>{u.name}</button>
-                      {u.id===currentUser.id&&<span style={{fontSize:10,color:"#475569"}}>(you)</span>}
+                      <button onClick={()=>setViewUser(u)} style={{background:"none",border:"none",color:"var(--text-primary)",fontWeight:600,fontSize:14,cursor:"pointer",padding:0}}>{u.name}</button>
+                      {u.id===currentUser.id&&<span style={{fontSize:10,color:"var(--text-faint)"}}>(you)</span>}
                     </div>
                   </td>
-                  <td style={{padding:"11px 13px",color:"#64748b",fontSize:13}}>{u.email}</td>
+                  <td style={{padding:"11px 13px",color:"var(--text-muted)",fontSize:13}}>{u.email}</td>
                   <td style={{padding:"11px 13px"}}><Badge label={u.role} color={roleColor(u.role)} /></td>
                   <td style={{padding:"11px 13px"}}><Badge label={u.certification||"None"} color={certColor(u.certification)} /></td>
-                  <td style={{padding:"11px 13px",color:"#94a3b8",fontSize:13}}>{u.region||"—"}</td>
+                  <td style={{padding:"11px 13px",color:"var(--text-second)",fontSize:13}}>{u.region||"—"}</td>
                   <td style={{padding:"11px 13px",color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:15}}>{u.points}</td>
                   <td style={{padding:"11px 13px"}}><Badge label={u.active?"Active":"Inactive"} color={u.active?"#4ade80":"#6b7280"} /></td>
                   <td style={{padding:"11px 13px"}}>
@@ -1468,7 +1463,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
                   </td>
                 </tr>
               ))}
-              {filtered.length===0&&<tr><td colSpan={8} style={{padding:44,textAlign:"center",color:"#475569"}}>No users found.</td></tr>}
+              {filtered.length===0&&<tr><td colSpan={8} style={{padding:44,textAlign:"center",color:"var(--text-faint)"}}>No users found.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -1487,11 +1482,11 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
 
       {adminAccess && tab === "regions" && (
         <div>
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:24,marginBottom:20}}>
-            <h3 style={{margin:"0 0 6px",fontSize:14,fontWeight:700,color:"#e2e8f0"}}>District List</h3>
-            <p style={{margin:"0 0 20px",fontSize:13,color:"#475569"}}>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:24,marginBottom:20}}>
+            <h3 style={{margin:"0 0 6px",fontSize:14,fontWeight:700,color:"var(--text-primary)"}}>District List</h3>
+            <p style={{margin:"0 0 20px",fontSize:13,color:"var(--text-faint)"}}>
               These districts appear in all district dropdowns throughout the system — for user profiles, match creation, and filters.
-              Add or remove them here to configure the system for your IPSC Region. Removing a district from the list does <em style={{color:"#94a3b8"}}>not</em> clear it from users or matches that already have it set.
+              Add or remove them here to configure the system for your IPSC Region. Removing a district from the list does <em style={{color:"var(--text-second)"}}>not</em> clear it from users or matches that already have it set.
             </p>
 
             {/* Add new district */}
@@ -1507,7 +1502,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
               </Field>
               <button style={{...btnP,marginBottom:16}} onClick={addRegion}>Add District</button>
             </div>
-            {regionError && <div style={{background:"#2a1515",border:"1px solid #4a2020",borderRadius:6,padding:"9px 13px",color:"#f87171",fontSize:13,marginBottom:16}}>{regionError}</div>}
+            {regionError && <div style={{background:"#f8717115",border:"1px solid #f8717155",borderRadius:6,padding:"9px 13px",color:"#f87171",fontSize:13,marginBottom:16}}>{regionError}</div>}
 
             {/* District grid */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
@@ -1515,16 +1510,16 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
                 const userCount = users.filter(u=>(u.region||"")===r).length;
                 return (
                   <div key={r} style={{
-                    background:"#0d1117", border:"1px solid #1e2530", borderRadius:8,
+                    background:"var(--surface)", border:"1px solid var(--border)", borderRadius:8,
                     padding:"12px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10
                   }}>
                     <div>
-                      <div style={{color:"#e2e8f0",fontWeight:600,fontSize:14}}>{r}</div>
-                      <div style={{color:"#475569",fontSize:12,marginTop:2}}>{userCount} user{userCount!==1?"s":""}</div>
+                      <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{r}</div>
+                      <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>{userCount} user{userCount!==1?"s":""}</div>
                     </div>
                     <button onClick={()=>removeRegion(r)} style={{
-                      background:"none", border:"1px solid #2a3441", borderRadius:5,
-                      color:"#64748b", cursor:"pointer", padding:"4px 9px", fontSize:12,
+                      background:"none", border:"1px solid var(--border2)", borderRadius:5,
+                      color:"var(--text-muted)", cursor:"pointer", padding:"4px 9px", fontSize:12,
                       lineHeight:1
                     }} title={`Remove ${r}`}>✕</button>
                   </div>
@@ -1533,15 +1528,15 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
             </div>
 
             {regions.length === 0 && (
-              <div style={{textAlign:"center",padding:40,color:"#475569",fontSize:13}}>
+              <div style={{textAlign:"center",padding:40,color:"var(--text-faint)",fontSize:13}}>
                 No districts configured. Add one above, or district fields will fall back to free text.
               </div>
             )}
           </div>
 
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:18}}>
-            <div style={{fontSize:12,color:"#475569"}}>
-              <strong style={{color:"#64748b"}}>Note for other IPSC Regions:</strong> This system ships with IPSC Norway's ten official districts as the default. Replace them here with your own nation's district breakdown. The software does not hard-code any district names — this list is the sole source of truth for all dropdowns.
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:18}}>
+            <div style={{fontSize:12,color:"var(--text-faint)"}}>
+              <strong style={{color:"var(--text-muted)"}}>Note for other IPSC Regions:</strong> This system ships with IPSC Norway's ten official districts as the default. Replace them here with your own nation's district breakdown. The software does not hard-code any district names — this list is the sole source of truth for all dropdowns.
             </div>
           </div>
         </div>
@@ -1558,7 +1553,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
                   <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20}}>
                     <div style={{width:50,height:50,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:800,color:"#fff"}}>{u.name.charAt(0)}</div>
                     <div>
-                      <div style={{fontSize:18,fontWeight:700,color:"#e2e8f0"}}>{u.name}</div>
+                      <div style={{fontSize:18,fontWeight:700,color:"var(--text-primary)"}}>{u.name}</div>
                       <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
                         <Badge label={u.role} color={roleColor(u.role)} />
                         <Badge label={u.certification||"No Cert"} color={certColor(u.certification)} />
@@ -1601,7 +1596,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
                                 setUsers(prev=>prev.map(x=>x.id===u.id?{...x,iroa:{member,since:member?(x.iroa?.since||new Date().toISOString().slice(0,10)):null}}:x));
                               }}
                               style={{width:16,height:16,accentColor:"#e85d2c"}} />
-                            <span style={{fontSize:13,color:"#e2e8f0"}}>IROA Member</span>
+                            <span style={{fontSize:13,color:"var(--text-primary)"}}>IROA Member</span>
                           </label>
                           {u.iroa?.member && (
                             <input type="date"
@@ -1618,7 +1613,7 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
                             checked={!!u.profilePhotoApproved}
                             onChange={e=>setUsers(prev=>prev.map(x=>x.id===u.id?{...x,profilePhotoApproved:e.target.checked}:x))}
                             style={{width:16,height:16,accentColor:"#e85d2c"}} />
-                          <span style={{fontSize:13,color:"#e2e8f0"}}>Profile photo approved</span>
+                          <span style={{fontSize:13,color:"var(--text-primary)"}}>Profile photo approved</span>
                         </label>
                       </Field>
                       <div style={{display:"flex",gap:8,marginTop:4}}>
@@ -1630,16 +1625,16 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
                 </div>
                 <div style={{width:250}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                    <h4 style={{margin:0,fontSize:12,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Cert History</h4>
+                    <h4 style={{margin:0,fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Cert History</h4>
                     <button style={{...btnP,padding:"5px 10px",fontSize:11}} onClick={()=>{setCertTarget(u);setViewUser(null);}}>+ Grant</button>
                   </div>
                   {(!u.certHistory||u.certHistory.length===0)
-                    ? <p style={{color:"#475569",fontSize:13}}>No certifications.</p>
+                    ? <p style={{color:"var(--text-faint)",fontSize:13}}>No certifications.</p>
                     : [...u.certHistory].reverse().map((c,i)=>(
-                      <div key={i} style={{padding:"9px 0",borderBottom:"1px solid #1a2030"}}>
-                        <div style={{display:"flex",gap:6,alignItems:"center"}}><Badge label={c.cert} color={certColor(c.cert)} /><span style={{color:"#64748b",fontSize:11}}>{fmtDate(c.date)}</span></div>
-                        <div style={{color:"#475569",fontSize:11,marginTop:4}}>By: {c.grantedBy}</div>
-                        {c.note&&<div style={{color:"#64748b",fontSize:11,fontStyle:"italic"}}>{c.note}</div>}
+                      <div key={i} style={{padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
+                        <div style={{display:"flex",gap:6,alignItems:"center"}}><Badge label={c.cert} color={certColor(c.cert)} /><span style={{color:"var(--text-muted)",fontSize:11}}>{fmtDate(c.date)}</span></div>
+                        <div style={{color:"var(--text-faint)",fontSize:11,marginTop:4}}>By: {c.grantedBy}</div>
+                        {c.note&&<div style={{color:"var(--text-muted)",fontSize:11,fontStyle:"italic"}}>{c.note}</div>}
                       </div>
                     ))
                   }
@@ -1677,8 +1672,8 @@ function GrantCertModal({ user, granterName, onClose, onSave }) {
 
   return (
     <Modal title={`Grant Certification — ${user.name}`} onClose={onClose}>
-      <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:16,marginBottom:20}}>
-        <div style={{fontSize:13,color:"#94a3b8",display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:16,marginBottom:20}}>
+        <div style={{fontSize:13,color:"var(--text-second)",display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
           Current cert: <Badge label={user.certification||"None"} color={certColor(user.certification)} />
           Current role: <Badge label={user.role} color={roleColor(user.role)} />
         </div>
@@ -1696,8 +1691,8 @@ function GrantCertModal({ user, granterName, onClose, onSave }) {
       <Field label="Notes / Reason (optional)">
         <input style={inp} value={note} onChange={e=>setNote(e.target.value)} placeholder="e.g. Passed RO exam at Bergen Regional 2026" />
       </Field>
-      <div style={{background:"#0d1015",border:"1px solid #2a3441",borderRadius:6,padding:"11px 14px",fontSize:12,color:"#64748b",marginBottom:22}}>
-        <strong style={{color:"#94a3b8"}}>Note:</strong> Granting a cert <em>adds</em> a history entry. The user's displayed certification updates only if the new cert is equal or higher rank than the current one. All cert grants are logged with your name ({granterName}) and today's date.
+      <div style={{background:"var(--surface)",border:"1px solid var(--border2)",borderRadius:6,padding:"11px 14px",fontSize:12,color:"var(--text-muted)",marginBottom:22}}>
+        <strong style={{color:"var(--text-second)"}}>Note:</strong> Granting a cert <em>adds</em> a history entry. The user's displayed certification updates only if the new cert is equal or higher rank than the current one. All cert grants are logged with your name ({granterName}) and today's date.
       </div>
       <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
         <button style={btnS} onClick={onClose}>Cancel</button>
@@ -1734,19 +1729,19 @@ function ApplicationsTab({ applications, users, currentUser, onApprove, onReject
   return (
     <div>
       <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap",alignItems:"center"}}>
-        <div style={{display:"flex",gap:4,background:"#0d1117",padding:4,borderRadius:7}}>
+        <div style={{display:"flex",gap:4,background:"var(--surface)",padding:4,borderRadius:7}}>
           {["pending","approved","rejected","all"].map(s=>(
             <button key={s} onClick={()=>setStatusFilter(s)} style={{
               padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",border:"none",borderRadius:5,
-              background:statusFilter===s?"#e85d2c":"transparent",color:statusFilter===s?"#fff":"#64748b",textTransform:"capitalize"
+              background:statusFilter===s?"#e85d2c":"transparent",color:statusFilter===s?"#fff":"var(--text-muted)",textTransform:"capitalize"
             }}>{s}</button>
           ))}
         </div>
-        <span style={{color:"#475569",fontSize:13}}>{filtered.length} application{filtered.length!==1?"s":""}</span>
+        <span style={{color:"var(--text-faint)",fontSize:13}}>{filtered.length} application{filtered.length!==1?"s":""}</span>
       </div>
 
       {filtered.length===0 ? (
-        <div style={{textAlign:"center",padding:60,color:"#475569",fontSize:14}}>
+        <div style={{textAlign:"center",padding:60,color:"var(--text-faint)",fontSize:14}}>
           No {statusFilter==="all"?"":statusFilter} applications.
         </div>
       ) : (
@@ -1755,7 +1750,7 @@ function ApplicationsTab({ applications, users, currentUser, onApprove, onReject
             const applicant = users.find(u=>u.id===app.userId);
             const isReviewing = reviewingId===app.id;
             return (
-              <div key={app.id} style={{background:"#111418",border:`1px solid ${app.status==="pending"?"#2a3441":"#1e2530"}`,borderRadius:10,overflow:"hidden"}}>
+              <div key={app.id} style={{background:"var(--surface2)",border:`1px solid ${app.status==="pending"?"var(--border2)":"var(--border)"}`,borderRadius:10,overflow:"hidden"}}>
                 <div style={{padding:"16px 20px",display:"flex",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
                   {/* Applicant avatar */}
                   <div style={{width:38,height:38,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:800,color:"#fff",flexShrink:0}}>
@@ -1763,20 +1758,20 @@ function ApplicationsTab({ applications, users, currentUser, onApprove, onReject
                   </div>
                   <div style={{flex:1,minWidth:200}}>
                     <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
-                      <span style={{fontWeight:700,color:"#e2e8f0",fontSize:14}}>{applicant?.name||app.userName}</span>
+                      <span style={{fontWeight:700,color:"var(--text-primary)",fontSize:14}}>{applicant?.name||app.userName}</span>
                       <Badge label={`Apply: ${app.type}`} color={appTypeColor(app.type)} />
                       <Badge label={app.status} color={app.status==="pending"?"#60a5fa":app.status==="approved"?"#4ade80":"#f87171"} />
                     </div>
-                    <div style={{fontSize:12,color:"#475569",display:"flex",gap:14,flexWrap:"wrap"}}>
-                      <span>Current cert: <span style={{color:"#94a3b8"}}>{applicant?.certification||app.userCert||"—"}</span></span>
-                      <span>District: <span style={{color:"#94a3b8"}}>{applicant?.region||app.userRegion||"—"}</span></span>
-                      <span>Submitted: <span style={{color:"#94a3b8"}}>{fmtDate(app.date)}</span></span>
+                    <div style={{fontSize:12,color:"var(--text-faint)",display:"flex",gap:14,flexWrap:"wrap"}}>
+                      <span>Current cert: <span style={{color:"var(--text-second)"}}>{applicant?.certification||app.userCert||"—"}</span></span>
+                      <span>District: <span style={{color:"var(--text-second)"}}>{applicant?.region||app.userRegion||"—"}</span></span>
+                      <span>Submitted: <span style={{color:"var(--text-second)"}}>{fmtDate(app.date)}</span></span>
                     </div>
-                    {app.note&&<div style={{marginTop:6,fontSize:13,color:"#64748b",fontStyle:"italic"}}>"{app.note}"</div>}
+                    {app.note&&<div style={{marginTop:6,fontSize:13,color:"var(--text-muted)",fontStyle:"italic"}}>"{app.note}"</div>}
                     {app.status!=="pending"&&app.reviewedBy&&(
-                      <div style={{marginTop:6,fontSize:12,color:"#475569"}}>
+                      <div style={{marginTop:6,fontSize:12,color:"var(--text-faint)"}}>
                         {app.status==="approved"?"✅":"❌"} {app.status} by {app.reviewedBy} on {fmtDate(app.reviewedDate)}
-                        {app.reviewNote&&<span style={{color:"#64748b"}}> — "{app.reviewNote}"</span>}
+                        {app.reviewNote&&<span style={{color:"var(--text-muted)"}}> — "{app.reviewNote}"</span>}
                       </div>
                     )}
                     {/* Show automated RO checklist inline for RO applications */}
@@ -1784,8 +1779,8 @@ function ApplicationsTab({ applications, users, currentUser, onApprove, onReject
                       const checklist = computeROChecklist(applicant);
                       const allPass   = checklist.every(c=>c.pass);
                       return (
-                        <div style={{marginTop:10,padding:"10px 12px",background:"#0d1117",borderRadius:7,border:"1px solid #1e2530"}}>
-                          <div style={{fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:8}}>
+                        <div style={{marginTop:10,padding:"10px 12px",background:"var(--surface)",borderRadius:7,border:"1px solid var(--border)"}}>
+                          <div style={{fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:8}}>
                             Automated RO checklist {allPass?<span style={{color:"#4ade80"}}>— All pass ✅</span>:<span style={{color:"#f87171"}}>— Fails detected ❌</span>}
                           </div>
                           <div style={{display:"flex",flexDirection:"column",gap:4}}>
@@ -1793,7 +1788,7 @@ function ApplicationsTab({ applications, users, currentUser, onApprove, onReject
                               <div key={item.key} style={{display:"flex",gap:8,alignItems:"center",fontSize:12}}>
                                 <span>{item.pass?"✅":"❌"}</span>
                                 <span style={{color:item.pass?"#86efac":"#fca5a5"}}>{item.label}</span>
-                                {item.detail&&<span style={{color:"#475569",fontSize:11}}>— {item.detail}</span>}
+                                {item.detail&&<span style={{color:"var(--text-faint)",fontSize:11}}>— {item.detail}</span>}
                               </div>
                             ))}
                           </div>
@@ -1811,7 +1806,7 @@ function ApplicationsTab({ applications, users, currentUser, onApprove, onReject
                 </div>
                 {/* Inline review panel */}
                 {isReviewing && (
-                  <div style={{padding:"14px 20px",borderTop:"1px solid #1e2530",background:"#0a0e14"}}>
+                  <div style={{padding:"14px 20px",borderTop:"1px solid var(--border)",background:"var(--surface)"}}>
                     <Field label="Review note (optional)">
                       <input style={inp} value={reviewNote} onChange={e=>setReviewNote(e.target.value)} placeholder="Reason for decision, optional…" />
                     </Field>
@@ -1859,8 +1854,8 @@ function ROPage({ users, matches, regions }) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
         <div>
-          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>Range Officers</h1>
-          <p style={{color:"#475569",margin:0,fontSize:14}}>{filtered.length} certified active officers</p>
+          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Range Officers</h1>
+          <p style={{color:"var(--text-faint)",margin:0,fontSize:14}}>{filtered.length} certified active officers</p>
         </div>
       </div>
       <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
@@ -1874,12 +1869,12 @@ function ROPage({ users, matches, regions }) {
           {[...regions].sort().map(r=><option key={r} value={r}>{r}</option>)}
         </select>
       </div>
-      <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,overflow:"hidden"}}>
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,overflow:"hidden"}}>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
           <thead>
-            <tr style={{background:"#0d1117"}}>
+            <tr style={{background:"var(--surface)"}}>
               {["Name","Certification","IROA","District","Matches","Points",""].map(h=>(
-                <th key={h} style={{padding:"12px 16px",textAlign:"left",fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid #1e2530"}}>{h}</th>
+                <th key={h} style={{padding:"12px 16px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid var(--border)"}}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -1887,11 +1882,11 @@ function ROPage({ users, matches, regions }) {
             {filtered.map((u,i)=>{
               const mc=matches.filter(m=>m.assignments.some(a=>a.roId===u.id)).length;
               return (
-                <tr key={u.id} style={{borderBottom:"1px solid #131922",background:i%2===0?"transparent":"#0a0e14"}}>
+                <tr key={u.id} style={{borderBottom:"1px solid var(--surface3)",background:i%2===0?"transparent":"var(--surface)"}}>
                   <td style={{padding:"12px 16px"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:30,height:30,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#fff",flexShrink:0}}>{u.name.charAt(0)}</div>
-                      <button onClick={()=>setViewUser(u)} style={{background:"none",border:"none",color:"#e2e8f0",fontWeight:600,fontSize:14,cursor:"pointer",padding:0}}>{u.name}</button>
+                      <button onClick={()=>setViewUser(u)} style={{background:"none",border:"none",color:"var(--text-primary)",fontWeight:600,fontSize:14,cursor:"pointer",padding:0}}>{u.name}</button>
                     </div>
                   </td>
                   <td style={{padding:"12px 16px"}}><Badge label={u.certification} color={certColor(u.certification)} /></td>
@@ -1901,17 +1896,17 @@ function ROPage({ users, matches, regions }) {
                           <span style={{width:8,height:8,borderRadius:"50%",background:"#38bdf8",display:"inline-block",flexShrink:0}} />
                           <span style={{color:"#38bdf8",fontSize:12,fontWeight:600}}>IROA</span>
                         </span>
-                      : <span style={{color:"#334155",fontSize:12}}>—</span>
+                      : <span style={{color:"var(--text-faint)",fontSize:12}}>—</span>
                     }
                   </td>
-                  <td style={{padding:"12px 16px",color:"#94a3b8",fontSize:13}}>{u.region||"—"}</td>
-                  <td style={{padding:"12px 16px",color:"#64748b",fontSize:13}}>{mc}</td>
+                  <td style={{padding:"12px 16px",color:"var(--text-second)",fontSize:13}}>{u.region||"—"}</td>
+                  <td style={{padding:"12px 16px",color:"var(--text-muted)",fontSize:13}}>{mc}</td>
                   <td style={{padding:"12px 16px",color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:15}}>{u.points}</td>
                   <td style={{padding:"12px 16px"}}><button onClick={()=>setViewUser(u)} style={{...btnS,padding:"5px 12px",fontSize:12}}>View</button></td>
                 </tr>
               );
             })}
-            {filtered.length===0&&<tr><td colSpan={7} style={{padding:44,textAlign:"center",color:"#475569"}}>No certified ROs found.</td></tr>}
+            {filtered.length===0&&<tr><td colSpan={7} style={{padding:44,textAlign:"center",color:"var(--text-faint)"}}>No certified ROs found.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -1928,42 +1923,42 @@ function ROPage({ users, matches, regions }) {
           <InfoRow label="Joined"   value={fmtDate(viewUser.joined)} />
           <InfoRow label="IROA Member" value={
             viewUser.iroa?.member
-              ? <span style={{color:"#38bdf8",fontWeight:600}}>Yes{viewUser.iroa.since ? <span style={{color:"#475569",fontWeight:400}}> — since {fmtDate(viewUser.iroa.since)}</span> : ""}</span>
+              ? <span style={{color:"#38bdf8",fontWeight:600}}>Yes{viewUser.iroa.since ? <span style={{color:"var(--text-faint)",fontWeight:400}}> — since {fmtDate(viewUser.iroa.since)}</span> : ""}</span>
               : "No"
           } />
           {viewUser.notes&&<InfoRow label="Notes" value={viewUser.notes}/>}
           {(viewUser.seminarHistory||[]).length>0 && (
             <>
-              <h4 style={{margin:"20px 0 10px",fontSize:12,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Seminar History</h4>
+              <h4 style={{margin:"20px 0 10px",fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Seminar History</h4>
               {[...viewUser.seminarHistory].reverse().map((s,i)=>(
-                <div key={i} style={{display:"flex",gap:8,alignItems:"center",padding:"7px 0",borderBottom:"1px solid #1a2030",flexWrap:"wrap"}}>
+                <div key={i} style={{display:"flex",gap:8,alignItems:"center",padding:"7px 0",borderBottom:"1px solid var(--border)",flexWrap:"wrap"}}>
                   <Badge label={s.type} color={s.type==="Level I"?"#38bdf8":"#a78bfa"} />
                   {s.graduated&&<Badge label="Graduated" color="#4ade80" />}
                   {s.diplomaVerified&&<Badge label="Verified" color="#38bdf8" />}
-                  <span style={{color:"#475569",fontSize:11,marginLeft:"auto"}}>{s.diplomaDate?fmtDate(s.diplomaDate):"—"}</span>
+                  <span style={{color:"var(--text-faint)",fontSize:11,marginLeft:"auto"}}>{s.diplomaDate?fmtDate(s.diplomaDate):"—"}</span>
                 </div>
               ))}
             </>
           )}
-          <h4 style={{margin:"20px 0 10px",fontSize:12,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Certification History</h4>
+          <h4 style={{margin:"20px 0 10px",fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Certification History</h4>
           {(viewUser.certHistory||[]).length===0
-            ? <p style={{color:"#475569",fontSize:13}}>No cert history.</p>
+            ? <p style={{color:"var(--text-faint)",fontSize:13}}>No cert history.</p>
             : [...(viewUser.certHistory||[])].reverse().map((c,i)=>(
-              <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"7px 0",borderBottom:"1px solid #1a2030"}}>
+              <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"7px 0",borderBottom:"1px solid var(--border)"}}>
                 <Badge label={c.cert} color={certColor(c.cert)} />
-                <span style={{color:"#64748b",fontSize:12,flex:1}}>Granted by {c.grantedBy}</span>
-                <span style={{color:"#475569",fontSize:12}}>{fmtDate(c.date)}</span>
+                <span style={{color:"var(--text-muted)",fontSize:12,flex:1}}>Granted by {c.grantedBy}</span>
+                <span style={{color:"var(--text-faint)",fontSize:12}}>{fmtDate(c.date)}</span>
               </div>
             ))
           }
-          <h4 style={{margin:"20px 0 10px",fontSize:12,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Match History</h4>
+          <h4 style={{margin:"20px 0 10px",fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Match History</h4>
           {roMatchHistory.length===0
-            ? <p style={{color:"#475569",fontSize:13}}>No match assignments.</p>
+            ? <p style={{color:"var(--text-faint)",fontSize:13}}>No match assignments.</p>
             : roMatchHistory.map(m=>(
-              <div key={m.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #1a2030"}}>
+              <div key={m.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
                 <div style={{flex:1}}>
-                  <div style={{color:"#e2e8f0",fontSize:14,fontWeight:500}}>{m.name}</div>
-                  <div style={{color:"#475569",fontSize:12,marginTop:2}}>{fmtDate(m.date)} · {m.region}</div>
+                  <div style={{color:"var(--text-primary)",fontSize:14,fontWeight:500}}>{m.name}</div>
+                  <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>{fmtDate(m.date)} · {m.region}</div>
                 </div>
                 <Badge label={m.assignment.role} color={certColor(m.assignment.role)} />
                 <span style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16}}>+{m.assignment.pointsAwarded}</span>
@@ -2020,8 +2015,8 @@ function MatchesPage({ users, matches, setMatches, regions }) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
         <div>
-          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>Matches</h1>
-          <p style={{color:"#475569",margin:0,fontSize:14}}>{filtered.length} of {matches.length} shown</p>
+          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Matches</h1>
+          <p style={{color:"var(--text-faint)",margin:0,fontSize:14}}>{filtered.length} of {matches.length} shown</p>
         </div>
         {canEdit&&<button style={btnP} onClick={()=>{setForm(blank);setShowCreate(true);}}>+ Create Match</button>}
       </div>
@@ -2045,16 +2040,16 @@ function MatchesPage({ users, matches, setMatches, regions }) {
             ? `MD/RM: ${mdName||"—"}`
             : [mdName ? `MD: ${mdName}` : null, rmUser ? `RM: ${rmUser.name}` : null].filter(Boolean).join(" · ") || "—";
           return (
-            <div key={m.id} style={{background:"#111418",border:"1px solid #1e2530",borderRadius:10,padding:"18px 22px",display:"flex",alignItems:"center",gap:16}}>
+            <div key={m.id} style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,padding:"18px 22px",display:"flex",alignItems:"center",gap:16}}>
               <div style={{flex:1}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                  <span style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>{m.name}</span>
+                  <span style={{fontSize:16,fontWeight:700,color:"var(--text-primary)"}}>{m.name}</span>
                   <Badge label={m.status} color={statusColor(m.status)} />
                   <Badge label={m.level}  color="#7c8cf8" />
                   {m.discipline && <Badge label={m.discipline} color="#0ea5e9" />}
 
                 </div>
-                <div style={{color:"#475569",fontSize:13,display:"flex",gap:18,flexWrap:"wrap"}}>
+                <div style={{color:"var(--text-faint)",fontSize:13,display:"flex",gap:18,flexWrap:"wrap"}}>
                   <span>📅 {fmtDate(m.date)}</span><span>📍 {m.region}</span>
                   <span>🎯 {m.stages} stages</span>
                   {m.shooters ? <span>🔫 {m.shooters} shooters</span> : null}
@@ -2070,7 +2065,7 @@ function MatchesPage({ users, matches, setMatches, regions }) {
             </div>
           );
         })}
-        {filtered.length===0&&<div style={{textAlign:"center",padding:60,color:"#475569"}}>No matches found.</div>}
+        {filtered.length===0&&<div style={{textAlign:"center",padding:60,color:"var(--text-faint)"}}>No matches found.</div>}
       </div>
 
       {showCreate&&canEdit&&(
@@ -2096,15 +2091,15 @@ function MatchesPage({ users, matches, setMatches, regions }) {
           </div>
 
           {/* MD/RM section */}
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:"14px 16px",marginBottom:16}}>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 16px",marginBottom:16}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-              <div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>Match Director / Rangemaster</div>
+              <div style={{fontSize:13,fontWeight:600,color:"var(--text-primary)"}}>Match Director / Rangemaster</div>
               {/* Combine toggle: only available for Level I */}
               {form.level==="Level I" && (
                 <button onClick={()=>setForm(f=>({...f,combinedMDRM:!f.combinedMDRM,md:"",rm:"",mdText:""}))} style={{
-                  background:form.combinedMDRM?"#e85d2c22":"#1e2530",
-                  border:`1px solid ${form.combinedMDRM?"#e85d2c55":"#2a3441"}`,
-                  borderRadius:6, color:form.combinedMDRM?"#e85d2c":"#64748b",
+                  background:form.combinedMDRM?"#e85d2c22":"var(--border)",
+                  border:`1px solid ${form.combinedMDRM?"#e85d2c55":"var(--border2)"}`,
+                  borderRadius:6, color:form.combinedMDRM?"#e85d2c":"var(--text-muted)",
                   padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap"
                 }}>{form.combinedMDRM?"✓ Combined MD/RM":"Combine MD/RM"}</button>
               )}
@@ -2218,30 +2213,30 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
       <div style={{
         width:22, height:22, borderRadius:"50%", flexShrink:0,
-        background: done ? "#16a34a" : "#1e2530",
-        border: `2px solid ${done ? "#4ade80" : "#2a3441"}`,
+        background: done ? "#16a34a" : "var(--border)",
+        border: `2px solid ${done ? "#4ade80" : "var(--border2)"}`,
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:13, color: done ? "#fff" : "#475569"
+        fontSize:13, color: done ? "#fff" : "var(--text-faint)"
       }}>{done ? "✓" : ""}</div>
-      <h3 style={{margin:0,fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{label}</h3>
+      <h3 style={{margin:0,fontSize:14,fontWeight:700,color:"var(--text-primary)"}}>{label}</h3>
     </div>
   );
 
   return (
     <Modal title="Complete Match — Final Report" onClose={onClose} wide>
-      <p style={{color:"#475569",fontSize:13,margin:"0 0 22px"}}>
+      <p style={{color:"var(--text-faint)",fontSize:13,margin:"0 0 22px"}}>
         Before distributing points and closing the match, confirm the DQ log and any additional staff below.
         Both sections must be filled in or checked off.
       </p>
 
       {/* ── SECTION 1: DQs ── */}
-      <div style={{background:"#111418",border:`1px solid ${dqReady?"#166534":"#1e2530"}`,borderRadius:10,padding:20,marginBottom:16}}>
+      <div style={{background:"var(--surface2)",border:`1px solid ${dqReady?"#4ade8066":"var(--border)"}`,borderRadius:10,padding:20,marginBottom:16}}>
         {sectionHead("Disqualifications", dqReady)}
 
         <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:16}}>
           <input type="checkbox" checked={noDQs} onChange={e=>{ setNoDQs(e.target.checked); if(e.target.checked) setDqList([]); }}
             style={{width:16,height:16,accentColor:"#4ade80"}} />
-          <span style={{fontSize:13,color:"#e2e8f0",fontWeight:600}}>No disqualifications at this match</span>
+          <span style={{fontSize:13,color:"var(--text-primary)",fontWeight:600}}>No disqualifications at this match</span>
         </label>
 
         {!noDQs && (<>
@@ -2249,11 +2244,11 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
           {dqList.length > 0 && (
             <div style={{marginBottom:16}}>
               {dqList.map((dq,i) => (
-                <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start",padding:"9px 12px",background:"#1a0e0e",border:"1px solid #4a1010",borderRadius:7,marginBottom:6}}>
+                <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start",padding:"9px 12px",background:"#f8717110",border:"1px solid #f8717144",borderRadius:7,marginBottom:6}}>
                   <div style={{flex:1}}>
-                    <div style={{color:"#e2e8f0",fontWeight:600,fontSize:13}}>{dq.name}</div>
+                    <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:13}}>{dq.name}</div>
                     <div style={{color:"#f87171",fontSize:11,marginTop:2}}>Rule {dq.ruleCode} — {dq.ruleLabel}</div>
-                    {dq.notes && <div style={{color:"#64748b",fontSize:11,marginTop:2,fontStyle:"italic"}}>{dq.notes}</div>}
+                    {dq.notes && <div style={{color:"var(--text-muted)",fontSize:11,marginTop:2,fontStyle:"italic"}}>{dq.notes}</div>}
                   </div>
                   <button onClick={()=>removeDQ(i)} style={{...btnD,padding:"3px 8px",fontSize:11,flexShrink:0}}>✕</button>
                 </div>
@@ -2262,8 +2257,8 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
           )}
 
           {/* Add DQ form */}
-          <div style={{background:"#0d1117",border:"1px solid #1e2530",borderRadius:8,padding:"14px 16px"}}>
-            <div style={{fontSize:12,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:12}}>Add Disqualification</div>
+          <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 16px"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:12}}>Add Disqualification</div>
             <Field label="Competitor Name / Alias">
               <input style={inp} value={dqName} onChange={e=>{setDqName(e.target.value);setDqError("");}} placeholder="e.g. Jan Hansen" />
             </Field>
@@ -2288,26 +2283,26 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
       </div>
 
       {/* ── SECTION 2: Extra Staff ── */}
-      <div style={{background:"#111418",border:`1px solid ${staffReady?"#166534":"#1e2530"}`,borderRadius:10,padding:20,marginBottom:22}}>
+      <div style={{background:"var(--surface2)",border:`1px solid ${staffReady?"#4ade8066":"var(--border)"}`,borderRadius:10,padding:20,marginBottom:22}}>
         {sectionHead("Additional Staff (not in RO roster)", staffReady)}
-        <p style={{color:"#475569",fontSize:12,margin:"0 0 14px"}}>
+        <p style={{color:"var(--text-faint)",fontSize:12,margin:"0 0 14px"}}>
           List any officials, scorers, stats officers, setup crew etc. who worked the match but aren't on the RO roster page.
         </p>
 
         <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:16}}>
           <input type="checkbox" checked={noExtra} onChange={e=>{ setNoExtra(e.target.checked); if(e.target.checked) setExtraStaff([]); }}
             style={{width:16,height:16,accentColor:"#4ade80"}} />
-          <span style={{fontSize:13,color:"#e2e8f0",fontWeight:600}}>No additional staff to report</span>
+          <span style={{fontSize:13,color:"var(--text-primary)",fontWeight:600}}>No additional staff to report</span>
         </label>
 
         {!noExtra && (<>
           {extraStaff.length > 0 && (
             <div style={{marginBottom:16}}>
               {extraStaff.map((s,i) => (
-                <div key={i} style={{display:"flex",gap:12,alignItems:"center",padding:"9px 12px",background:"#0d1117",border:"1px solid #1e2530",borderRadius:7,marginBottom:6}}>
+                <div key={i} style={{display:"flex",gap:12,alignItems:"center",padding:"9px 12px",background:"var(--surface)",border:"1px solid var(--border)",borderRadius:7,marginBottom:6}}>
                   <div style={{flex:1}}>
-                    <div style={{color:"#e2e8f0",fontWeight:600,fontSize:13}}>{s.name}</div>
-                    <div style={{color:"#475569",fontSize:11,marginTop:2}}>{s.role}{s.notes ? " — "+s.notes : ""}</div>
+                    <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:13}}>{s.name}</div>
+                    <div style={{color:"var(--text-faint)",fontSize:11,marginTop:2}}>{s.role}{s.notes ? " — "+s.notes : ""}</div>
                   </div>
                   <button onClick={()=>removeStaff(i)} style={{...btnD,padding:"3px 8px",fontSize:11}}>✕</button>
                 </div>
@@ -2315,8 +2310,8 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
             </div>
           )}
 
-          <div style={{background:"#0d1117",border:"1px solid #1e2530",borderRadius:8,padding:"14px 16px"}}>
-            <div style={{fontSize:12,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:12}}>Add Staff Member</div>
+          <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 16px"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:12}}>Add Staff Member</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               <Field label="Name">
                 <input style={inp} value={esName} onChange={e=>{setEsName(e.target.value);setEsError("");}} placeholder="Full name" />
@@ -2338,7 +2333,7 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
 
       {/* ── Confirm ── */}
       {!canConfirm && (
-        <div style={{background:"#1a1208",border:"1px solid #4a3010",borderRadius:7,padding:"11px 14px",color:"#fbbf24",fontSize:13,marginBottom:16}}>
+        <div style={{background:"#fbbf2415",border:"1px solid #fbbf2455",borderRadius:7,padding:"11px 14px",color:"#fbbf24",fontSize:13,marginBottom:16}}>
           ⚠️ Complete both sections above before confirming.
           {!dqReady && " — DQ log required."}
           {!staffReady && " — Extra staff report required."}
@@ -2347,7 +2342,7 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
       <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
         <button style={btnS} onClick={onClose}>Cancel</button>
         <button
-          style={{...btnP, background: canConfirm ? "#16a34a" : "#1e2530", cursor: canConfirm ? "pointer" : "not-allowed", opacity: canConfirm ? 1 : 0.5}}
+          style={{...btnP, background: canConfirm ? "#16a34a" : "var(--border)", cursor: canConfirm ? "pointer" : "not-allowed", opacity: canConfirm ? 1 : 0.5}}
           disabled={!canConfirm}
           onClick={()=>onConfirm(dqList, extraStaff)}
         >
@@ -2359,7 +2354,6 @@ function CompleteMatchModal({ match, users, onConfirm, onClose }) {
 }
 
 function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
-  const T = THEMES[useTheme()];
   const [addROId,       setAddROId]       = useState("");
   const [addRole,       setAddRole]       = useState("RO");
   const [addStages,     setAddStages]     = useState("");
@@ -2394,23 +2388,23 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
   return (
     <Modal title={`${readonly?"View":"Manage"}: ${match.name}`} onClose={onClose} wide>
       {/* Match header info */}
-      <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:"14px 18px",marginBottom:18}}>
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 18px",marginBottom:18}}>
         <div style={{display:"flex",gap:24,flexWrap:"wrap",fontSize:13,alignItems:"center"}}>
-          <span style={{color:"#64748b"}}>📅 <span style={{color:"#e2e8f0"}}>{fmtDate(match.date)}</span></span>
-          <span style={{color:"#64748b"}}>📍 <span style={{color:"#e2e8f0"}}>{match.region}</span></span>
-          <span style={{color:"#64748b"}}>🎯 <span style={{color:"#e2e8f0"}}>{match.stages} stages</span></span>
-          {match.shooters ? <span style={{color:"#64748b"}}>🔫 <span style={{color:"#e2e8f0"}}>{match.shooters} shooters</span></span> : null}
-          <span style={{color:"#64748b"}}><Badge label={match.level} color="#7c8cf8" /></span>
+          <span style={{color:"var(--text-muted)"}}>📅 <span style={{color:"var(--text-primary)"}}>{fmtDate(match.date)}</span></span>
+          <span style={{color:"var(--text-muted)"}}>📍 <span style={{color:"var(--text-primary)"}}>{match.region}</span></span>
+          <span style={{color:"var(--text-muted)"}}>🎯 <span style={{color:"var(--text-primary)"}}>{match.stages} stages</span></span>
+          {match.shooters ? <span style={{color:"var(--text-muted)"}}>🔫 <span style={{color:"var(--text-primary)"}}>{match.shooters} shooters</span></span> : null}
+          <span style={{color:"var(--text-muted)"}}><Badge label={match.level} color="#7c8cf8" /></span>
           {match.discipline && <Badge label={match.discipline} color="#0ea5e9" />}
           {match.externalLink && <a href={match.externalLink} target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa",fontSize:13,textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>🔗 Match page ↗</a>}
         </div>
         <div style={{marginTop:12,display:"flex",gap:24,flexWrap:"wrap",fontSize:13}}>
           {match.combinedMDRM ? (
-            <span style={{color:"#64748b"}}>👔 MD/RM (combined): <span style={{color:"#e2e8f0",fontWeight:600}}>{mdName||"—"}</span></span>
+            <span style={{color:"var(--text-muted)"}}>👔 MD/RM (combined): <span style={{color:"var(--text-primary)",fontWeight:600}}>{mdName||"—"}</span></span>
           ) : (
             <>
-              {mdName && <span style={{color:"#64748b"}}>🗂️ Match Director: <span style={{color:"#e2e8f0",fontWeight:600}}>{mdName}</span></span>}
-              <span style={{color:"#64748b"}}>🛡️ Rangemaster: <span style={{color:"#e2e8f0",fontWeight:600}}>{rmUser?.name||"—"}</span></span>
+              {mdName && <span style={{color:"var(--text-muted)"}}>🗂️ Match Director: <span style={{color:"var(--text-primary)",fontWeight:600}}>{mdName}</span></span>}
+              <span style={{color:"var(--text-muted)"}}>🛡️ Rangemaster: <span style={{color:"var(--text-primary)",fontWeight:600}}>{rmUser?.name||"—"}</span></span>
             </>
           )}
         </div>
@@ -2418,19 +2412,19 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
 
       {/* Compact stat strip */}
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14,alignItems:"center"}}>
-        <span style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#60a5fa"}}>
+        <span style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#60a5fa"}}>
           {match.assignments.length} RO{match.assignments.length!==1?"s":""} assigned
         </span>
         {match.shooters ? (
-          <span style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#a78bfa"}}>
+          <span style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#a78bfa"}}>
             {match.shooters} shooters
           </span>
         ) : null}
-        <span style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#e85d2c"}}>
+        <span style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:"#e85d2c"}}>
           {match.assignments.reduce((s,a)=>s+a.pointsAwarded,0)} pts to give
         </span>
         {match.status==="completed" && match.dqList && (
-          <span style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:match.dqList.length>0?"#f87171":"#4ade80"}}>
+          <span style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:600,color:match.dqList.length>0?"#f87171":"#4ade80"}}>
             {match.dqList.length===0?"No DQs":`${match.dqList.length} DQ${match.dqList.length!==1?"s":""}`}
           </span>
         )}
@@ -2440,28 +2434,28 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
       {match.status==="completed" && (match.dqList?.length>0 || match.extraStaff?.length>0) && (
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
           {match.dqList?.length>0 && (
-            <div style={{background:"#1a0e0e",border:"1px solid #4a1010",borderRadius:8,padding:"14px 16px"}}>
+            <div style={{background:"#f8717110",border:"1px solid #f8717144",borderRadius:8,padding:"14px 16px"}}>
               <div style={{fontSize:12,fontWeight:700,color:"#f87171",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:10}}>
                 🚫 Disqualifications ({match.dqList.length})
               </div>
               {match.dqList.map((dq,i)=>(
-                <div key={i} style={{padding:"7px 0",borderBottom:"1px solid #2a1010",fontSize:13}}>
-                  <div style={{color:"#e2e8f0",fontWeight:600}}>{dq.name}</div>
+                <div key={i} style={{padding:"7px 0",borderBottom:"1px solid var(--border)",fontSize:13}}>
+                  <div style={{color:"var(--text-primary)",fontWeight:600}}>{dq.name}</div>
                   <div style={{color:"#f87171",fontSize:11,marginTop:2}}>{dq.ruleCode} — {dq.ruleLabel}</div>
-                  {dq.notes && <div style={{color:"#64748b",fontSize:11,marginTop:1,fontStyle:"italic"}}>{dq.notes}</div>}
+                  {dq.notes && <div style={{color:"var(--text-muted)",fontSize:11,marginTop:1,fontStyle:"italic"}}>{dq.notes}</div>}
                 </div>
               ))}
             </div>
           )}
           {match.extraStaff?.length>0 && (
-            <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:"14px 16px"}}>
-              <div style={{fontSize:12,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:10}}>
+            <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"14px 16px"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"var(--text-second)",textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:10}}>
                 👔 Additional Staff ({match.extraStaff.length})
               </div>
               {match.extraStaff.map((s,i)=>(
-                <div key={i} style={{padding:"7px 0",borderBottom:"1px solid #1a2030",fontSize:13}}>
-                  <div style={{color:"#e2e8f0",fontWeight:600}}>{s.name}</div>
-                  <div style={{color:"#475569",fontSize:11,marginTop:2}}>{s.role}{s.notes ? " — "+s.notes : ""}</div>
+                <div key={i} style={{padding:"7px 0",borderBottom:"1px solid var(--border)",fontSize:13}}>
+                  <div style={{color:"var(--text-primary)",fontWeight:600}}>{s.name}</div>
+                  <div style={{color:"var(--text-faint)",fontSize:11,marginTop:2}}>{s.role}{s.notes ? " — "+s.notes : ""}</div>
                 </div>
               ))}
             </div>
@@ -2492,10 +2486,10 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
 
       {/* Add RO — always-visible compact form when editable */}
       {!readonly && (
-        <div style={{background:T.surface2,border:`1px solid ${T.border}`,borderRadius:8,padding:"10px 14px",marginBottom:14}}>
-          <div style={{fontSize:11,fontWeight:700,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:"10px 14px",marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
             Add RO to Roster
-            <span style={{fontWeight:400,textTransform:"none",letterSpacing:0,color:T.textFaint,fontSize:11}}>
+            <span style={{fontWeight:400,textTransform:"none",letterSpacing:0,color:"var(--text-faint)",fontSize:11}}>
               {match.combinedMDRM ? "RO=1 · CRO=2 · RM=3 · MD/RM=4 pts" : "RO=1 · CRO=2 · RM/MD=3 · MD/RM=4 pts"}
             </span>
           </div>
@@ -2514,21 +2508,21 @@ function ManageMatch({ match, users, readonly, onClose, onUpdate }) {
               + Add · <span style={{color:"#fbbf24"}}>{POINT_RULES[addRole]||1}pt</span>
             </button>
           </div>
-          {availableROs.length===0 && <p style={{color:T.textFaint,fontSize:12,margin:"6px 0 0"}}>All eligible ROs are already assigned.</p>}
+          {availableROs.length===0 && <p style={{color:"var(--text-faint)",fontSize:12,margin:"6px 0 0"}}>All eligible ROs are already assigned.</p>}
         </div>
       )}
 
       {/* RO Roster */}
-      <div style={{fontSize:11,fontWeight:700,color:T.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>RO Roster</div>
+      <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>RO Roster</div>
       <div>
-        {match.assignments.length===0&&<p style={{color:T.textFaint,fontSize:14}}>No ROs assigned yet.</p>}
+        {match.assignments.length===0&&<p style={{color:"var(--text-faint)",fontSize:14}}>No ROs assigned yet.</p>}
         {match.assignments.map(a=>{
           const ro=users.find(u=>u.id===a.roId);
           return (
-            <div key={a.roId} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:`1px solid ${T.border}`}}>
+            <div key={a.roId} style={{display:"flex",alignItems:"center",gap:12,padding:"9px 0",borderBottom:"1px solid var(--border)"}}>
               <div style={{flex:1}}>
-                <div style={{color:T.textPrimary,fontWeight:600,fontSize:14}}>{ro?.name||"Unknown"}</div>
-                <div style={{color:T.textFaint,fontSize:12,marginTop:2}}>
+                <div style={{color:"var(--text-primary)",fontWeight:600,fontSize:14}}>{ro?.name||"Unknown"}</div>
+                <div style={{color:"var(--text-faint)",fontSize:12,marginTop:2}}>
                   {ro?.certification}
                   {a.stages&&a.stages.length>0 ? ` · Stages: ${a.stages.join(", ")}` : " · No specific stages"}
                 </div>
@@ -2582,31 +2576,31 @@ function PointsPage({ users, setUsers, matches }) {
 
   return (
     <div>
-      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>Activity Points</h1>
-      <p style={{color:"#475569",marginBottom:28,fontSize:14}}>Points ledger and distribution history</p>
+      <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Activity Points</h1>
+      <p style={{color:"var(--text-faint)",marginBottom:28,fontSize:14}}>Points ledger and distribution history</p>
       <div style={{display:"grid",gridTemplateColumns:adminAccess?"1fr 1fr":"1fr",gap:20,marginBottom:28}}>
-        <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:20}}>
-          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points Standings</h3>
+        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
+          <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points Standings</h3>
           {sorted.map((u,i)=>(
             <div key={u.id} style={{marginBottom:12}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:11,color:i<3?"#facc15":"#475569",fontWeight:700,minWidth:20}}>#{i+1}</span>
-                  <span style={{color:"#e2e8f0",fontSize:14}}>{u.name}</span>
+                  <span style={{fontSize:11,color:i<3?"#facc15":"var(--text-faint)",fontWeight:700,minWidth:20}}>#{i+1}</span>
+                  <span style={{color:"var(--text-primary)",fontSize:14}}>{u.name}</span>
                   <Badge label={u.certification||"None"} color={certColor(u.certification)} />
                 </div>
                 <span style={{color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16}}>{u.points}</span>
               </div>
-              <div style={{background:"#1e2530",borderRadius:4,height:4,overflow:"hidden"}}>
+              <div style={{background:"var(--border)",borderRadius:4,height:4,overflow:"hidden"}}>
                 <div style={{width:`${(u.points/max)*100}%`,background:`hsl(${Math.max(0,120-i/sorted.length*90)},70%,50%)`,height:"100%",borderRadius:4}} />
               </div>
             </div>
           ))}
         </div>
         {adminAccess&&(
-          <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:20}}>
-            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Manual Adjustment</h3>
-            <p style={{color:"#475569",fontSize:13,marginBottom:16}}>Positive adds, negative deducts.</p>
+          <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
+            <h3 style={{margin:"0 0 14px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Manual Adjustment</h3>
+            <p style={{color:"var(--text-faint)",fontSize:13,marginBottom:16}}>Positive adds, negative deducts.</p>
             <Field label="User">
               <UserPicker
                 users={users}
@@ -2623,11 +2617,11 @@ function PointsPage({ users, setUsers, matches }) {
             <button style={btnP} onClick={applyAdjust}>Apply</button>
             {adjustLog.length>0&&(
               <div style={{marginTop:16}}>
-                <h4 style={{fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>This session</h4>
+                <h4 style={{fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>This session</h4>
                 {adjustLog.slice(0,5).map((l,i)=>(
-                  <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid #1a2030",fontSize:13}}>
-                    <span style={{color:"#94a3b8"}}>{l.name} — {l.reason}</span>
-                    <span style={{color:l.amt>0?"#4ade80":"#f87171",fontWeight:700}}>{l.amt>0?"+":""}{l.amt} pts</span>
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid var(--border)",fontSize:13}}>
+                    <span style={{color:"var(--text-second)"}}>{l.name} — {l.reason}</span>
+                    <span style={{color:l.amt>0?"#4ade80":"#f87171",fontWeight:700}}>{l.amt>0?"+":"-"}{l.amt} pts</span>
                   </div>
                 ))}
               </div>
@@ -2635,18 +2629,18 @@ function PointsPage({ users, setUsers, matches }) {
           </div>
         )}
       </div>
-      <div style={{background:"#111418",border:"1px solid #1e2530",borderRadius:8,padding:20}}>
-        <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"#64748b",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points from Completed Matches</h3>
-        {matchHistory.length===0&&<p style={{color:"#475569"}}>No completed matches yet.</p>}
+      <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:20}}>
+        <h3 style={{margin:"0 0 16px",fontSize:13,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.08em"}}>Points from Completed Matches</h3>
+        {matchHistory.length===0&&<p style={{color:"var(--text-faint)"}}>No completed matches yet.</p>}
         {matchHistory.length>0&&(
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead><tr>{["Match","Date","Range Officer","Role","Points"].map(h=><th key={h} style={{padding:"8px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:"1px solid #1e2530"}}>{h}</th>)}</tr></thead>
+            <thead><tr>{["Match","Date","Range Officer","Role","Points"].map(h=><th key={h} style={{padding:"8px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:"1px solid var(--border)"}}>{h}</th>)}</tr></thead>
             <tbody>
               {matchHistory.map((e,i)=>(
-                <tr key={i} style={{borderBottom:"1px solid #131922"}}>
-                  <td style={{padding:"10px 12px",color:"#e2e8f0",fontSize:13}}>{e.matchName}</td>
-                  <td style={{padding:"10px 12px",color:"#64748b",fontSize:13}}>{fmtDate(e.date)}</td>
-                  <td style={{padding:"10px 12px",color:"#cbd5e1",fontSize:13}}>{e.roName}</td>
+                <tr key={i} style={{borderBottom:"1px solid var(--surface3)"}}>
+                  <td style={{padding:"10px 12px",color:"var(--text-primary)",fontSize:13}}>{e.matchName}</td>
+                  <td style={{padding:"10px 12px",color:"var(--text-muted)",fontSize:13}}>{fmtDate(e.date)}</td>
+                  <td style={{padding:"10px 12px",color:"var(--text-second)",fontSize:13}}>{e.roName}</td>
                   <td style={{padding:"10px 12px"}}><Badge label={e.role} color={certColor(e.role)} /></td>
                   <td style={{padding:"10px 12px",color:"#e85d2c",fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",fontSize:16}}>+{e.pts}</td>
                 </tr>
@@ -2797,8 +2791,8 @@ function SeminarsPage({ users, setUsers, seminars, setSeminars }) {
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
         <div>
-          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"#e2e8f0"}}>Seminars</h1>
-          <p style={{color:"#475569",margin:0,fontSize:14}}>IROA certification seminars — {seminars.length} total</p>
+          <h1 style={{fontSize:28,fontWeight:800,margin:"0 0 4px",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.03em",color:"var(--text-primary)"}}>Seminars</h1>
+          <p style={{color:"var(--text-faint)",margin:0,fontSize:14}}>IROA certification seminars — {seminars.length} total</p>
         </div>
         {canEdit && <button style={btnP} onClick={()=>{setForm(blank);setShowCreate(true);}}>+ New Seminar</button>}
       </div>
@@ -2823,14 +2817,14 @@ function SeminarsPage({ users, setUsers, seminars, setSeminars }) {
           const instructor = users.find(u=>u.id===s.instructor);
           const graduated  = s.enrollments.filter(e=>e.graduated).length;
           return (
-            <div key={s.id} style={{background:"#111418",border:"1px solid #1e2530",borderRadius:10,padding:"18px 22px",display:"flex",gap:18,alignItems:"center"}}>
+            <div key={s.id} style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:10,padding:"18px 22px",display:"flex",gap:18,alignItems:"center"}}>
               <div style={{flex:1}}>
                 <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:6}}>
-                  <span style={{fontSize:16,fontWeight:700,color:"#e2e8f0"}}>{s.name}</span>
+                  <span style={{fontSize:16,fontWeight:700,color:"var(--text-primary)"}}>{s.name}</span>
                   <Badge label={s.type} color={typeColor(s.type)} />
                   <Badge label={s.status} color={statusColor(s.status)} />
                 </div>
-                <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,color:"#64748b"}}>
+                <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,color:"var(--text-muted)"}}>
                   <span>📅 {fmtDate(s.date)}</span>
                   {s.location && <span>📍 {s.location}</span>}
                   <span>👤 Instructor: {instructor?.name||"—"}</span>
@@ -2844,7 +2838,7 @@ function SeminarsPage({ users, setUsers, seminars, setSeminars }) {
           );
         })}
         {filtered.length===0 && (
-          <div style={{textAlign:"center",padding:60,color:"#475569",fontSize:14}}>
+          <div style={{textAlign:"center",padding:60,color:"var(--text-faint)",fontSize:14}}>
             No seminars found. {canEdit && "Create the first one above."}
           </div>
         )}
@@ -2940,7 +2934,7 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
 
   const tabBtn = t => ({
     padding:"7px 18px", fontSize:13, fontWeight:600, cursor:"pointer", border:"none", borderRadius:5,
-    background:tab===t?"#e85d2c":"transparent", color:tab===t?"#fff":"#64748b"
+    background:tab===t?"#e85d2c":"transparent", color:tab===t?"#fff":"var(--text-muted)"
   });
 
   return (
@@ -2952,14 +2946,14 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:10,marginBottom:20}}>
         <StatCard label="Date"       value={fmtDate(seminar.date)}       accent="#60a5fa" />
-        <StatCard label="Enrolled"   value={seminar.enrollments.length}  accent="#94a3b8" />
+        <StatCard label="Enrolled"   value={seminar.enrollments.length}  accent="var(--text-second)" />
         <StatCard label="Graduated"  value={graduated}                   accent="#4ade80" />
         <StatCard label="Instructor" value={instructor?.name||"—"}       accent="#f97316" />
       </div>
-      {seminar.location && <div style={{color:"#64748b",fontSize:13,marginBottom:16}}>📍 {seminar.location}</div>}
+      {seminar.location && <div style={{color:"var(--text-muted)",fontSize:13,marginBottom:16}}>📍 {seminar.location}</div>}
 
       {/* Tabs */}
-      <div style={{display:"flex",gap:4,background:"#0d1117",padding:4,borderRadius:7,marginBottom:20,width:"fit-content"}}>
+      <div style={{display:"flex",gap:4,background:"var(--surface)",padding:4,borderRadius:7,marginBottom:20,width:"fit-content"}}>
         <button style={tabBtn("students")} onClick={()=>setTab("students")}>🎓 Student Roster</button>
         {canEdit && seminar.status==="upcoming" && <button style={tabBtn("enroll")} onClick={()=>setTab("enroll")}>➕ Enroll Students</button>}
       </div>
@@ -2968,13 +2962,13 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
       {tab==="students" && (
         <div>
           {seminar.enrollments.length === 0 ? (
-            <div style={{textAlign:"center",padding:40,color:"#475569",fontSize:13}}>No students enrolled yet.</div>
+            <div style={{textAlign:"center",padding:40,color:"var(--text-faint)",fontSize:13}}>No students enrolled yet.</div>
           ) : (
             <table style={{width:"100%",borderCollapse:"collapse"}}>
               <thead>
-                <tr style={{background:"#0d1117"}}>
+                <tr style={{background:"var(--surface)"}}>
                   {["Student","Current Cert","Attended","Graduated","Diploma Verified","Diploma Date", canEdit?"":""].map((h,i)=>(
-                    <th key={i} style={{padding:"10px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid #1e2530"}}>{h}</th>
+                    <th key={i} style={{padding:"10px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid var(--border)"}}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -2983,34 +2977,34 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
                   const u = users.find(x=>x.id===e.userId);
                   if (!u) return null;
                   return (
-                    <tr key={e.userId} style={{borderBottom:"1px solid #131922",background:i%2===0?"transparent":"#0a0e14"}}>
+                    <tr key={e.userId} style={{borderBottom:"1px solid var(--surface3)",background:i%2===0?"transparent":"var(--surface)"}}>
                       <td style={{padding:"10px 12px"}}>
-                        <div style={{fontWeight:600,color:"#e2e8f0",fontSize:13}}>{u.name}</div>
-                        <div style={{color:"#475569",fontSize:11}}>{u.email}</div>
+                        <div style={{fontWeight:600,color:"var(--text-primary)",fontSize:13}}>{u.name}</div>
+                        <div style={{color:"var(--text-faint)",fontSize:11}}>{u.email}</div>
                       </td>
                       <td style={{padding:"10px 12px"}}><Badge label={u.certification||"None"} color={certColor(u.certification)} /></td>
                       <td style={{padding:"10px 12px"}}>
                         {canEdit
                           ? <input type="checkbox" checked={e.attended} onChange={ev=>updateEnrollment(e.userId,{attended:ev.target.checked})} style={{width:16,height:16,accentColor:"#e85d2c"}} />
-                          : <span style={{color:e.attended?"#4ade80":"#475569"}}>{e.attended?"✓":"—"}</span>
+                          : <span style={{color:e.attended?"#4ade80":"var(--text-faint)"}}>{e.attended?"✓":"—"}</span>
                         }
                       </td>
                       <td style={{padding:"10px 12px"}}>
                         {canEdit
                           ? <input type="checkbox" checked={e.graduated} onChange={ev=>updateEnrollment(e.userId,{graduated:ev.target.checked})} style={{width:16,height:16,accentColor:"#4ade80"}} />
-                          : <span style={{color:e.graduated?"#4ade80":"#475569"}}>{e.graduated?"✓":"—"}</span>
+                          : <span style={{color:e.graduated?"#4ade80":"var(--text-faint)"}}>{e.graduated?"✓":"—"}</span>
                         }
                       </td>
                       <td style={{padding:"10px 12px"}}>
                         {canEdit
                           ? <input type="checkbox" checked={e.diplomaVerified} onChange={ev=>updateEnrollment(e.userId,{diplomaVerified:ev.target.checked})} style={{width:16,height:16,accentColor:"#38bdf8"}} />
-                          : <span style={{color:e.diplomaVerified?"#38bdf8":"#475569"}}>{e.diplomaVerified?"✓":"—"}</span>
+                          : <span style={{color:e.diplomaVerified?"#38bdf8":"var(--text-faint)"}}>{e.diplomaVerified?"✓":"—"}</span>
                         }
                       </td>
                       <td style={{padding:"10px 12px"}}>
                         {canEdit
                           ? <input type="date" style={{...inp,width:140,padding:"5px 8px",fontSize:12}} value={e.diplomaDate||""} onChange={ev=>updateEnrollment(e.userId,{diplomaDate:ev.target.value})} />
-                          : <span style={{color:"#64748b",fontSize:12}}>{e.diplomaDate?fmtDate(e.diplomaDate):"—"}</span>
+                          : <span style={{color:"var(--text-muted)",fontSize:12}}>{e.diplomaDate?fmtDate(e.diplomaDate):"—"}</span>
                         }
                       </td>
                       {canEdit && (
@@ -3029,10 +3023,10 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
 
           {/* Complete seminar button */}
           {canEdit && seminar.status==="upcoming" && seminar.enrollments.length>0 && (
-            <div style={{marginTop:24,borderTop:"1px solid #1e2530",paddingTop:20}}>
+            <div style={{marginTop:24,borderTop:"1px solid var(--border)",paddingTop:20}}>
               {!confirmComplete ? (
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
-                  <div style={{fontSize:13,color:"#64748b"}}>
+                  <div style={{fontSize:13,color:"var(--text-muted)"}}>
                     Completing the seminar will auto-grant <Badge label="RO-P" color="#86efac" /> to any students who graduated and have no existing certification.
                   </div>
                   <button style={{...btnP,background:"#16a34a",whiteSpace:"nowrap"}} onClick={()=>setConfirmComplete(true)}>
@@ -3065,14 +3059,14 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
             placeholder="Search by name or email…"
           />
           {candidates.length===0 ? (
-            <div style={{color:"#475569",fontSize:13,textAlign:"center",padding:30}}>No eligible users found.</div>
+            <div style={{color:"var(--text-faint)",fontSize:13,textAlign:"center",padding:30}}>No eligible users found.</div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {candidates.map(u=>(
-                <div key={u.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#0d1117",border:"1px solid #1e2530",borderRadius:8,padding:"12px 16px"}}>
+                <div key={u.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"var(--surface)",border:"1px solid var(--border)",borderRadius:8,padding:"12px 16px"}}>
                   <div>
-                    <div style={{fontWeight:600,color:"#e2e8f0",fontSize:13}}>{u.name}</div>
-                    <div style={{color:"#475569",fontSize:11}}>{u.email} · {u.region||"No district"}</div>
+                    <div style={{fontWeight:600,color:"var(--text-primary)",fontSize:13}}>{u.name}</div>
+                    <div style={{color:"var(--text-faint)",fontSize:11}}>{u.email} · {u.region||"No district"}</div>
                   </div>
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
                     <Badge label={u.certification||"None"} color={certColor(u.certification)} />
@@ -3140,13 +3134,14 @@ export default function App() {
       --border: ${T.border}; --border2: ${T.border2};
       --text-primary: ${T.textPrimary}; --text-second: ${T.textSecond}; --text-muted: ${T.textMuted}; --text-faint: ${T.textFaint};
       --inp-bg: ${T.inpBg}; --inp-border: ${T.inpBorder}; --inp-text: ${T.inpText};
+      --shadow-lg: ${T.shadowLg}; --backdrop: ${T.backdrop};
+      --scroll-bg: ${T.scrollBg}; --scroll-thumb: ${T.scrollThumb};
     }
   `;
-
   if (!currentUser) {
     return (
       <ThemeCtx.Provider value={theme}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:${T.bg};}select option{background:${T.selectOption};}${cssVars}`}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:var(--bg);}select option{background:${T.selectOption};}${cssVars}`}</style>
         <AuthCtx.Provider value={{ currentUser, setCurrentUser }}>
           <AuthScreen users={users} setUsers={setUsers} onLogin={login} regions={regions} />
         </AuthCtx.Provider>
@@ -3160,10 +3155,10 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
         *, *::before, *::after { box-sizing: border-box; }
-        body { margin: 0; background: ${T.bg}; color: ${T.textPrimary}; font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; background: ${T.scrollBg}; }
-        ::-webkit-scrollbar-thumb { background: ${T.scrollThumb}; border-radius: 3px; }
-        select option { background: ${T.selectOption}; color: ${T.inpText}; }
+        body { margin: 0; background: var(--bg); color: var(--text-primary); font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; background: var(--scroll-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
+        select option { background: ${T.selectOption}; color: var(--inp-text); }
         ${cssVars}
 
         /* ── Desktop: sidebar visible, no mobile chrome ── */
@@ -3185,23 +3180,23 @@ export default function App() {
       {/* Mobile backdrop — closes drawer when tapped */}
       {menuOpen && <div className="ro-backdrop" onClick={()=>setMenuOpen(false)} />}
 
-      <div style={{display:"flex",minHeight:"100vh",background:T.bg}}>
+      <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
 
         {/* ── Sidebar (desktop always, mobile as drawer) ── */}
         <aside className={`ro-sidebar${menuOpen?" open":""}`} style={{
-          width:228, background:T.surface, borderRight:`1px solid ${T.border}`,
+          width:228, background:"var(--surface)", borderRight:"1px solid var(--border)",
           flexDirection:"column", position:"fixed", top:0, left:0, bottom:0, zIndex:100
         }}>
-          <div style={{padding:"22px 20px 18px",borderBottom:`1px solid ${T.border}`}}>
+          <div style={{padding:"22px 20px 18px",borderBottom:"1px solid var(--border)"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{width:36,height:36,background:"#e85d2c",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎯</div>
               <div style={{flex:1}}>
-                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,color:T.textPrimary,letterSpacing:"0.06em"}}>IPSC</div>
-                <div style={{fontSize:10,color:T.textFaint,textTransform:"uppercase",letterSpacing:"0.1em"}}>RO Manager</div>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:17,fontWeight:800,color:"var(--text-primary)",letterSpacing:"0.06em"}}>IPSC</div>
+                <div style={{fontSize:10,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.1em"}}>RO Manager</div>
               </div>
               {/* Close button — only meaningful on mobile */}
               <button onClick={()=>setMenuOpen(false)} style={{
-                background:"none",border:"none",color:T.textMuted,fontSize:20,cursor:"pointer",
+                background:"none",border:"none",color:"var(--text-muted)",fontSize:20,cursor:"pointer",
                 lineHeight:1,padding:"2px 4px",display:"block"
               }}>×</button>
             </div>
@@ -3215,7 +3210,7 @@ export default function App() {
                 borderRadius:8,cursor:"pointer",marginBottom:3,textAlign:"left"
               }}>
                 <span style={{fontSize:14}}>{n.icon}</span>
-                <span style={{fontSize:14,fontWeight:600,color:page===n.id?"#e85d2c":T.textMuted,flex:1}}>{n.label}</span>
+                <span style={{fontSize:14,fontWeight:600,color:page===n.id?"#e85d2c":"var(--text-muted)",flex:1}}>{n.label}</span>
                 {n.badge > 0 && (
                   <span style={{
                     background:"#e85d2c", color:"#fff", borderRadius:10,
@@ -3226,11 +3221,11 @@ export default function App() {
             ))}
           </nav>
           {/* User panel */}
-          <div style={{padding:"14px 16px",borderTop:`1px solid ${T.border}`}}>
+          <div style={{padding:"14px 16px",borderTop:"1px solid var(--border)"}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
               <div style={{width:32,height:32,borderRadius:"50%",background:"#e85d2c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:"#fff",flexShrink:0}}>{currentUser.name.charAt(0)}</div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:13,fontWeight:600,color:T.textPrimary,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{currentUser.name}</div>
+                <div style={{fontSize:13,fontWeight:600,color:"var(--text-primary)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{currentUser.name}</div>
                 <div style={{display:"flex",gap:4,marginTop:3,flexWrap:"wrap"}}>
                   <Badge label={currentUser.role} color={roleColor(currentUser.role)} />
                   {currentUser.certification&&currentUser.certification!=="None"&&<Badge label={currentUser.certification} color={certColor(currentUser.certification)} />}
@@ -3243,15 +3238,15 @@ export default function App() {
               title={theme==="dark"?"Switch to light mode":"Switch to dark mode"}
               style={{
                 width:"100%", marginBottom:8,
-                background:T.surface2, border:`1px solid ${T.border2}`,
-                borderRadius:6, color:T.textSecond, padding:"7px", fontSize:12,
+                background:"var(--surface2)", border:"1px solid var(--border2)",
+                borderRadius:6, color:"var(--text-second)", padding:"7px", fontSize:12,
                 cursor:"pointer", fontWeight:600, display:"flex", alignItems:"center",
                 justifyContent:"center", gap:6
               }}
             >
               {theme==="dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
             </button>
-            <button onClick={logout} style={{width:"100%",background:T.surface2,border:`1px solid ${T.border2}`,borderRadius:6,color:T.textMuted,padding:"7px",fontSize:12,cursor:"pointer",fontWeight:600}}>Sign Out</button>
+            <button onClick={logout} style={{width:"100%",background:"var(--surface2)",border:"1px solid var(--border2)",borderRadius:6,color:"var(--text-muted)",padding:"7px",fontSize:12,cursor:"pointer",fontWeight:600}}>Sign Out</button>
           </div>
         </aside>
 
@@ -3261,17 +3256,17 @@ export default function App() {
           {/* Mobile top bar — hidden on desktop */}
           <header className="ro-topbar" style={{
             position:"sticky",top:0,zIndex:80,
-            background:T.surface,borderBottom:`1px solid ${T.border}`,
+            background:"var(--surface)",borderBottom:"1px solid var(--border)",
             alignItems:"center",justifyContent:"space-between",
             padding:"12px 16px",gap:10
           }}>
             <button onClick={()=>setMenuOpen(true)} style={{
-              background:T.surface2,border:`1px solid ${T.border2}`,borderRadius:7,
-              color:T.textPrimary,padding:"7px 11px",fontSize:15,cursor:"pointer",lineHeight:1,flexShrink:0
+              background:"var(--surface2)",border:"1px solid var(--border2)",borderRadius:7,
+              color:"var(--text-primary)",padding:"7px 11px",fontSize:15,cursor:"pointer",lineHeight:1,flexShrink:0
             }}>☰</button>
             <div style={{display:"flex",alignItems:"center",gap:8,flex:1,minWidth:0}}>
               <div style={{width:24,height:24,background:"#e85d2c",borderRadius:5,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0}}>🎯</div>
-              <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:800,color:T.textPrimary,letterSpacing:"0.05em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+              <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:800,color:"var(--text-primary)",letterSpacing:"0.05em",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                 {NAV.find(n=>n.id===page)?.label || "IPSC RO Manager"}
               </span>
             </div>
@@ -3283,7 +3278,7 @@ export default function App() {
             </div>
           </header>
 
-          <main className="ro-main" style={{flex:1,background:T.bg}}>
+          <main className="ro-main" style={{flex:1,background:"var(--bg)"}}>
             {page==="dashboard"&&<Dashboard users={users} matches={matches} seminars={seminars} />}
             {page==="ros"      &&<ROPage users={users} matches={matches} regions={regions} />}
             {page==="matches"  &&<MatchesPage users={users} matches={matches} setMatches={setMatches} regions={regions} />}
