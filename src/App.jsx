@@ -1115,7 +1115,7 @@ function Dashboard({ users, matches, seminars }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MyProfile({ users, setUsers, matches, seminars, regions, applications, setApplications, clubs, setClubs }) {
-  const { currentUser, setCurrentUser } = useAuth();
+  const { currentUser } = useAuth();
   const user = users.find(u=>u.id===currentUser.id) || currentUser;
 
   const [editMode,  setEditMode]  = useState(false);
@@ -1157,7 +1157,7 @@ function MyProfile({ users, setUsers, matches, seminars, regions, applications, 
     setProfileFe({});
     const upd = {...user,name:form.name.trim(),region:form.region.trim(),notes:form.notes,email:form.email.trim(),iroa:form.iroa};
     setUsers(prev=>prev.map(u=>u.id===user.id?upd:u));
-    setCurrentUser(upd); setEditMode(false);
+    setEditMode(false);
   }
 
   function changePw() {
@@ -1796,6 +1796,33 @@ function UserDatabase({ users, setUsers, regions, setRegions, applications, setA
           <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:8,padding:18}}>
             <div style={{fontSize:12,color:"var(--text-faint)"}}>
               <strong style={{color:"var(--text-muted)"}}>Note for other IPSC Regions:</strong> This system ships with IPSC Norway's ten official districts as the default. Replace them here with your own nation's district breakdown. The software does not hard-code any district names — this list is the sole source of truth for all dropdowns.
+            </div>
+          </div>
+
+          {/* ── Data & Storage ── */}
+          <div style={{background:"var(--surface2)",border:"1px solid #f8717144",borderRadius:8,padding:24,marginTop:20}}>
+            <h3 style={{margin:"0 0 6px",fontSize:14,fontWeight:700,color:"var(--text-primary)"}}>⚠️ Data &amp; Storage</h3>
+            <p style={{margin:"0 0 16px",fontSize:13,color:"var(--text-faint)"}}>
+              All application data — users, matches, clubs, seminars, documents, and settings — is stored in your browser's <strong style={{color:"var(--text-muted)"}}>localStorage</strong>.
+              Data persists across page refreshes and browser restarts on this device, but is <strong style={{color:"var(--text-muted)"}}>not shared between browsers or devices</strong>.
+              Clearing browser site data will erase all records.
+            </p>
+            <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+              <div style={{fontSize:12,color:"var(--text-faint)"}}>
+                Storage used: <strong style={{color:"var(--text-second)"}}>
+                  {(()=>{try{const used=Object.values(LS_KEYS).reduce((s,k)=>{const v=localStorage.getItem(k);return s+(v?v.length:0);},0);return used<1024?used+" B":used<1048576?(used/1024).toFixed(1)+" KB":(used/1048576).toFixed(1)+" MB";}catch{return "—";}})()}
+                </strong>
+              </div>
+              <button
+                style={{...btnD, padding:"9px 18px", marginLeft:"auto"}}
+                onClick={()=>{
+                  if (window.confirm("Reset ALL data to factory defaults?\n\nThis will permanently delete all users, matches, clubs, seminars, documents and settings you have created. The seed demo data will be restored.\n\nThis cannot be undone.")) {
+                    wipeAndReset();
+                  }
+                }}
+              >
+                🗑️ Reset to Factory Defaults
+              </button>
             </div>
           </div>
         </div>
@@ -2892,7 +2919,7 @@ function ClubsPage({ users, clubs, setClubs, applications, setApplications, matc
   }
 
   return (
-    <div style={{padding:"28px 32px", maxWidth:980}}>
+    <div>
       {/* Header */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
         <div>
@@ -3488,7 +3515,7 @@ function DocsPage({ docs, setDocs }) {
   }
 
   return (
-    <div style={{padding:"28px 32px", maxWidth:1060}}>
+    <div>
 
       {/* ── Page header ── */}
       <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:24}}>
@@ -3611,7 +3638,7 @@ function DocsPage({ docs, setDocs }) {
           </div>
         ) : (
           <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%", borderCollapse:"collapse", minWidth:700}}>
+            <table style={{width:"100%", borderCollapse:"collapse"}}>
               <thead>
                 <tr style={{background:"var(--surface3)"}}>
                   <TH col="category"       label="Category"    width={100} />
@@ -3786,7 +3813,7 @@ function PointsPage({ users, setUsers, matches }) {
   const certifiedUsers = users.filter(u=>u.active && ["RO","CRO","RM"].includes(u.certification));
 
   return (
-    <div style={{padding:"28px 32px",maxWidth:960}}>
+    <div>
       <h1 style={{margin:"0 0 6px",fontSize:26,fontWeight:800,color:"var(--text-primary)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.04em"}}>Points Ledger</h1>
       <p style={{margin:"0 0 28px",color:"var(--text-muted)",fontSize:14}}>
         RO activity points per NROI Handbook 2026 — 1pt L1, 2pt L2, 3pt L3, 4pt L4, 5pt L5.
@@ -3802,7 +3829,7 @@ function PointsPage({ users, setUsers, matches }) {
           </div>
 
           <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",minWidth:560}}>
+            <table style={{width:"100%",borderCollapse:"collapse"}}>
               <thead>
                 <tr style={{background:"var(--surface3)"}}>
                   <th style={{padding:"8px 12px",textAlign:"left",fontSize:11,fontWeight:700,color:"var(--text-faint)",textTransform:"uppercase",letterSpacing:"0.07em",borderBottom:"1px solid var(--border)",minWidth:130}}>RO</th>
@@ -3941,7 +3968,7 @@ function PointsPage({ users, setUsers, matches }) {
           <span style={{fontSize:11,color:"var(--text-faint)",marginLeft:"auto"}}>{visibleLedger.length} entries</span>
         </div>
         <div style={{overflowX:"auto"}}>
-          <table style={{width:"100%",borderCollapse:"collapse",minWidth:560}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
             <thead>
               <tr style={{background:"var(--surface3)"}}>
                 {["RO","Match","Level","Date","Role","Points"].map(h=>(
@@ -4196,7 +4223,7 @@ function SeminarsPage({ users, setUsers, seminars, setSeminars }) {
   }
 
   return (
-    <div style={{padding:"28px 32px",maxWidth:900}}>
+    <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <div>
           <h1 style={{margin:"0 0 4px",fontSize:26,fontWeight:800,color:"var(--text-primary)",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:"0.04em"}}>Seminars</h1>
@@ -4371,32 +4398,108 @@ function SeminarDetailModal({ seminar, users, setUsers, canEdit, onClose, onUpda
 // APP
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function App() {
-  const [users,       setUsers]       = useState(seedUsers);
-  const [matchesRaw,  setMatchesRaw]  = useState(seedMatches);
-  const [seminars,    setSeminars]    = useState(seedSeminars);
-  const [applications,setApplications]= useState([]);
-  const [clubs,       setClubs]       = useState(seedClubs);
-  const [docs,        setDocs]        = useState(seedDocs);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [page,        setPage]        = useState("dashboard");
-  const [regions,     setRegions]     = useState(DEFAULT_REGIONS);
-  const [menuOpen,    setMenuOpen]    = useState(false);
-  const [theme,       setTheme]       = useState("dark");
 
-  // Intercept setMatches to distribute points when a match is completed
+// ─────────────────────────────────────────────────────────────────────────────
+// PERSISTENCE — localStorage store
+// Keys are namespaced under "ipsc_" to avoid collisions.
+// Seed data is the fallback when no stored data exists (first visit).
+// Documents are stored whole (including dataUrl) since seed docs are small
+// text blobs; uploaded files are base64 and may be large — users are warned.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LS_KEYS = {
+  users:        "ipsc_users",
+  matches:      "ipsc_matches",
+  seminars:     "ipsc_seminars",
+  applications: "ipsc_applications",
+  clubs:        "ipsc_clubs",
+  docs:         "ipsc_docs",
+  regions:      "ipsc_regions",
+  theme:        "ipsc_theme",
+};
+
+function lsGet(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function lsSet(key, value) {
+  try {
+    // Strip transient flags before persisting matches
+    if (key === LS_KEYS.matches && Array.isArray(value)) {
+      value = value.map(m => { const { _pointsToDistribute, ...rest } = m; return rest; });
+    }
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch(e) {
+    // Quota exceeded (large doc uploads) — silently ignore; data stays in memory
+    console.warn("localStorage write failed:", e);
+  }
+}
+
+// Returns initial state from localStorage, falling back to seed data
+function initState() {
+  return {
+    users:        lsGet(LS_KEYS.users,        seedUsers),
+    matches:      lsGet(LS_KEYS.matches,      seedMatches),
+    seminars:     lsGet(LS_KEYS.seminars,     seedSeminars),
+    applications: lsGet(LS_KEYS.applications, []),
+    clubs:        lsGet(LS_KEYS.clubs,        seedClubs),
+    docs:         lsGet(LS_KEYS.docs,         seedDocs),
+    regions:      lsGet(LS_KEYS.regions,      DEFAULT_REGIONS),
+    theme:        lsGet(LS_KEYS.theme,        "dark"),
+  };
+}
+
+// Wipe all ipsc_ keys and reload — admin "factory reset"
+function wipeAndReset() {
+  Object.values(LS_KEYS).forEach(k => localStorage.removeItem(k));
+  window.location.reload();
+}
+
+export default function App() {
+  // ── Initialise from localStorage (falls back to seed data on first visit) ──
+  const init = React.useMemo(initState, []);
+
+  const [users,        setUsersRaw]       = useState(init.users);
+  const [matchesRaw,   setMatchesRaw]     = useState(init.matches);
+  const [seminars,     setSeminarsRaw]    = useState(init.seminars);
+  const [applications, setApplicationsRaw]= useState(init.applications);
+  const [clubs,        setClubsRaw]       = useState(init.clubs);
+  const [docs,         setDocsRaw]        = useState(init.docs);
+  const [regions,      setRegionsRaw]     = useState(init.regions);
+  const [theme,        setThemeRaw]       = useState(init.theme);
+  const [currentUserId,setCurrentUserId]  = useState(null);
+  const [page,        setPage]        = useState("dashboard");
+  const [menuOpen,    setMenuOpen]    = useState(false);
+
+  // Derive currentUser from users list so profile edits are reflected live
+  const currentUser = currentUserId ? users.find(u=>u.id===currentUserId)||null : null;
+
+  // ── Simple pass-through setters (no side effects inside updaters) ──────────
+  const setUsers        = setUsersRaw;
+  const setSeminars     = setSeminarsRaw;
+  const setApplications = setApplicationsRaw;
+  const setClubs        = setClubsRaw;
+  const setDocs         = setDocsRaw;
+  const setRegions      = setRegionsRaw;
+  const setTheme        = setThemeRaw;
+
+  // Intercept setMatches only to distribute points when a match is completed
   function setMatches(updater) {
     setMatchesRaw(prev => {
       const next = typeof updater === "function" ? updater(prev) : updater;
-      // Find newly completed matches that need point distribution
       next.forEach(m => {
         if (m._pointsToDistribute) {
-          setUsers(u => u.map(user => {
+          setUsersRaw(u => u.map(user => {
             const assignment = m.assignments.find(a => a.roId === user.id);
             if (!assignment) return user;
             return { ...user, points: user.points + assignment.pointsAwarded };
           }));
-          // Clear the flag
           m._pointsToDistribute = false;
         }
       });
@@ -4404,8 +4507,27 @@ export default function App() {
     });
   }
 
-  function login(user)  { setCurrentUser(user); setPage("dashboard"); setMenuOpen(false); }
-  function logout()     { setCurrentUser(null); setPage("dashboard"); setMenuOpen(false); }
+  // ── Persist to localStorage via useEffect (correct React pattern) ──────────
+  const { useEffect } = React;
+  useEffect(() => { lsSet(LS_KEYS.users,        users);        }, [users]);
+  useEffect(() => { lsSet(LS_KEYS.matches,       matchesRaw);   }, [matchesRaw]);
+  useEffect(() => { lsSet(LS_KEYS.seminars,      seminars);     }, [seminars]);
+  useEffect(() => { lsSet(LS_KEYS.applications,  applications); }, [applications]);
+  useEffect(() => { lsSet(LS_KEYS.clubs,         clubs);        }, [clubs]);
+  useEffect(() => { lsSet(LS_KEYS.docs,          docs);         }, [docs]);
+  useEffect(() => { lsSet(LS_KEYS.regions,       regions);      }, [regions]);
+  useEffect(() => { lsSet(LS_KEYS.theme,         theme);        }, [theme]);
+
+  function login(user) {
+    setCurrentUserId(user.id);
+    setPage("dashboard");
+    setMenuOpen(false);
+  }
+  function logout() {
+    setCurrentUserId(null);
+    setPage("dashboard");
+    setMenuOpen(false);
+  }
 
   const pendingApps = applications.filter(a=>a.status==="pending");
   const admin    = currentUser && isAdmin(currentUser);
@@ -4439,7 +4561,7 @@ export default function App() {
   if (!currentUser) {
     return (
       <ThemeCtx.Provider value={theme}>
-        <AuthCtx.Provider value={{ currentUser, setCurrentUser }}>
+        <AuthCtx.Provider value={{ currentUser }}>
           <style>{cssVars}</style>
           <style>{`body{margin:0;background:var(--bg);color:var(--text-primary);font-family:'Inter','Segoe UI',sans-serif;}*{box-sizing:border-box;}input,select,textarea{background:var(--inp-bg);border-color:var(--inp-border);color:var(--inp-text);}select option{background:var(--surface);color:var(--inp-text);}::-webkit-scrollbar{width:6px;background:var(--scroll-bg);}::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:3px;}`}</style>
           <AuthScreen users={users} setUsers={setUsers} onLogin={login} regions={regions} />
@@ -4450,7 +4572,7 @@ export default function App() {
 
   return (
     <ThemeCtx.Provider value={theme}>
-      <AuthCtx.Provider value={{ currentUser, setCurrentUser }}>
+      <AuthCtx.Provider value={{ currentUser }}>
         <style>{cssVars}</style>
         <style>{`
           body{margin:0;background:var(--bg);color:var(--text-primary);font-family:'Inter','Segoe UI',sans-serif;}
@@ -4532,7 +4654,7 @@ export default function App() {
           </div>
 
           {/* Main content */}
-          <main style={{marginLeft:228,flex:1,minHeight:"100vh",background:"var(--bg)"}}>
+          <main style={{marginLeft:228,width:"calc(100% - 228px)",minHeight:"100vh",background:"var(--bg)",padding:"28px clamp(16px,2.5vw,40px)",boxSizing:"border-box",overflowX:"hidden"}}>
             {page==="dashboard" && <Dashboard users={users} matches={matchesRaw} seminars={seminars} />}
             {page==="ro"        && <ROPage users={users} matches={matchesRaw} regions={regions} />}
             {page==="matches"   && <MatchesPage users={users} matches={matchesRaw} setMatches={setMatches} regions={regions} clubs={clubs} />}
